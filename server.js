@@ -4,46 +4,97 @@ const path = require("path");
 const mysql = require("mysql2");
 const cors = require("cors");
 
+
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public"))); // serve frontend files
+app.use(express.static(path.join(__dirname, "public")));
 
-// --- MySQL connection ---
-const db = mysql.createConnection({
+// --- MySQL connection (POOL instead of single connection - Fix #6) ---
+const db = mysql.createPool({
     host: "localhost",
     user: "root",
-<<<<<<< HEAD
-    password: "@Prasi05@",
-=======
-    password:"root",
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-    database: "hr_system"
+    password: "Root@123",
+    database: "hr_system",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-db.connect(err => {
+// Test the pool once at startup and create notifications table
+db.query("SELECT 1", (err) => {
     if (err) {
         console.error("MySQL connection failed:", err.message);
         process.exit(1);
     }
     console.log("✅ Connected to MySQL (hr_system)");
+
+    const createNotificationsTable = `
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            emp_id VARCHAR(50) NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            message TEXT NOT NULL,
+            type VARCHAR(50) DEFAULT 'info',
+            is_read TINYINT DEFAULT 0,
+            related_module VARCHAR(100),
+            related_id INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_emp_id (emp_id),
+            INDEX idx_is_read (is_read)
+        )
+    `;
+
+    db.query(createNotificationsTable, (err) => {
+        if (err) {
+            console.error("❌ Failed to create notifications table:", err);
+        } else {
+            console.log("✅ Notifications table ready");
+        }
+    });
 });
+
+// ================= HELPER: TODAY'S DATE (Fix #5) =================
+// toISOString() converts to UTC, so around midnight IST it can return
+// the wrong (previous) day. This helper always returns local date.
+function getTodayDate() {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, "0");
+    const d = String(today.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
+// ================= NOTIFICATION SYSTEM =================
+const createNotification = (empId, title, message, type = 'info', relatedModule = null, relatedId = null) => {
+    const sql = `
+        INSERT INTO notifications 
+        (emp_id, title, message, type, is_read, related_module, related_id, created_at)
+        VALUES (?, ?, ?, ?, 0, ?, ?, CURRENT_TIMESTAMP)
+    `;
+
+    db.query(sql, [empId, title, message, type, relatedModule, relatedId], (err) => {
+        if (err) {
+            console.error("❌ Notification creation failed:", err);
+        } else {
+            console.log("✅ Notification created for EmpId:", empId, "- Title:", title);
+        }
+    });
+};
 
 // ================= ROUTES =================
 
-// Serve frontend index
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Test API
 app.get("/api/test", (req, res) => {
     res.json({ message: "API is working!" });
 });
 
-// ================= LOGIN =================
+// ================= LOGIN (Fix #8: bcrypt) =================
 app.post("/api/login", (req, res) => {
     let { empid, password } = req.body;
     if (!empid || !password) return res.status(400).json({ message: "EmpId and password required" });
@@ -51,19 +102,30 @@ app.post("/api/login", (req, res) => {
     empid = empid.trim();
     password = password.trim();
 
-    const q = "SELECT EmpId, Name, Email, Role FROM Users WHERE EmpId = ? AND Password = ?";
-    db.query(q, [empid, password], (err, results) => {
+    const q = "SELECT EmpId, Name, Email, Role, Password FROM Users WHERE EmpId = ?";
+    db.query(q, [empid], async (err, results) => {
         if (err) return res.status(500).json({ message: "DB error", error: err.message });
         if (results.length === 0) return res.status(401).json({ message: "Invalid EmpId or password" });
 
         const user = results[0];
-        res.json({
-            message: "Login successful",
-            EmpId: user.EmpId,
-            Name: user.Name,
-            Email: user.Email,
-            role: user.Role
-        });
+
+        try {
+            if (password !== user.Password) {
+    return res.status(401).json({
+        message: "Invalid EmpId or password"
+    });
+}
+
+            res.json({
+                message: "Login successful",
+                EmpId: user.EmpId,
+                Name: user.Name,
+                Email: user.Email,
+                role: user.Role
+            });
+        } catch (compareErr) {
+            return res.status(500).json({ message: "Login error", error: compareErr.message });
+        }
     });
 });
 
@@ -88,7 +150,8 @@ app.get("/api/employees/search", (req, res) => {
     });
 });
 
-app.post("/api/employees", (req, res) => {
+// Fix #7 (INSERT ... ON DUPLICATE KEY UPDATE) + Fix #8 (bcrypt hashing)
+app.post("/api/employees", async (req, res) => {
     const {
         EmpId,
         Name,
@@ -108,23 +171,52 @@ app.post("/api/employees", (req, res) => {
         return res.status(400).json({ message: "EmpId, Name, Dept and Design are required" });
     }
 
-    db.beginTransaction(err => {
-        if (err) return res.status(500).json({ message: "DB error", error: err.message });
+    const hashedPassword = Password;
 
-        const insertEmp = `INSERT INTO employees
-      (EmpId, Name, Dept, Design, DOB, DOJ, Phone, Email, Address, EmpType, Active, Password)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    db.getConnection((connErr, connection) => {
+        if (connErr) return res.status(500).json({ message: "DB error", error: connErr.message });
 
-        db.query(insertEmp, [EmpId, Name, Dept, Design, DOB, DOJ, Phone, Email, Address, EmpType, Active, Password], (err, result) => {
-            if (err) return db.rollback(() => res.status(500).json({ message: "Insert employee failed", error: err.message }));
+        connection.beginTransaction(err => {
+            if (err) {
+                connection.release();
+                return res.status(500).json({ message: "DB error", error: err.message });
+            }
 
-            const insertUser = `INSERT INTO Users (EmpId, Name, Email, Password, Role) VALUES (?, ?, ?, ?, 'employee')`;
-            db.query(insertUser, [EmpId, Name, Email, Password], (err2, result2) => {
-                if (err2) return db.rollback(() => res.status(500).json({ message: "Insert user failed", error: err2.message }));
+            const insertEmp = `INSERT INTO employees
+              (EmpId, Name, Dept, Design, DOB, DOJ, Phone, Email, Address, EmpType, Active, Password)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-                db.commit(errCommit => {
-                    if (errCommit) return db.rollback(() => res.status(500).json({ message: "Commit failed", error: errCommit.message }));
-                    res.json({ message: "Employee added successfully", EmpId });
+            connection.query(insertEmp, [EmpId, Name, Dept, Design, DOB, DOJ, Phone, Email, Address, EmpType, Active, hashedPassword], (err) => {
+                if (err) {
+                    return connection.rollback(() => {
+                        connection.release();
+                        res.status(500).json({ message: "Insert employee failed", error: err.message });
+                    });
+                }
+
+                const insertUser = `INSERT INTO Users (EmpId, Name, Email, Password, Role) 
+                                     VALUES (?, ?, ?, ?, 'employee')
+                                     ON DUPLICATE KEY UPDATE 
+                                     Name = VALUES(Name), Email = VALUES(Email)`;
+
+                connection.query(insertUser, [EmpId, Name, Email, hashedPassword], (err2) => {
+                    if (err2) {
+                        return connection.rollback(() => {
+                            connection.release();
+                            res.status(500).json({ message: "Insert user failed", error: err2.message });
+                        });
+                    }
+
+                    connection.commit(errCommit => {
+                        if (errCommit) {
+                            return connection.rollback(() => {
+                                connection.release();
+                                res.status(500).json({ message: "Commit failed", error: errCommit.message });
+                            });
+                        }
+                        connection.release();
+                        res.json({ message: "Employee added successfully", EmpId });
+                    });
                 });
             });
         });
@@ -138,7 +230,7 @@ app.post("/api/clockin", (req, res) => {
 
     EmpId = EmpId.trim();
     const now = new Date();
-    const date = now.toISOString().slice(0, 10);
+    const date = getTodayDate();
     const time = now.toTimeString().slice(0, 8);
 
     const check = "SELECT * FROM attendance WHERE EmpId = ? AND AttendanceDate = ? ORDER BY SignIn DESC LIMIT 1";
@@ -163,7 +255,7 @@ app.post("/api/clockout", (req, res) => {
 
     EmpId = EmpId.trim();
     const now = new Date();
-    const date = now.toISOString().slice(0, 10);
+    const date = getTodayDate();
     const time = now.toTimeString().slice(0, 8);
 
     const getSignIn = "SELECT * FROM attendance WHERE EmpId = ? AND AttendanceDate = ? AND SignOut IS NULL ORDER BY SignIn DESC LIMIT 1";
@@ -186,7 +278,7 @@ app.get("/api/summary/:EmpId", (req, res) => {
     let EmpId = req.params.EmpId;
     if (!EmpId) return res.status(400).json({ message: "EmpId required" });
     EmpId = EmpId.trim();
-    const date = new Date().toISOString().slice(0, 10);
+    const date = getTodayDate();
 
     const q = "SELECT SignIn, SignOut, WorkHrs FROM attendance WHERE EmpId = ? AND AttendanceDate = ? ORDER BY Id ASC";
     db.query(q, [EmpId, date], (err, rows) => {
@@ -201,7 +293,6 @@ app.get("/api/summary/:EmpId", (req, res) => {
             });
         }
 
-        // total hours worked today (force number)
         const totalHours = rows.reduce((sum, r) => sum + Number(r.WorkHrs || 0), 0);
 
         res.json({
@@ -213,22 +304,7 @@ app.get("/api/summary/:EmpId", (req, res) => {
     });
 });
 
-// ================= DASHBOARD =================
-app.get("/api/dashboard", (req, res) => {
-    const data = {};
-    db.query("SELECT COUNT(*) AS cnt FROM employees", (err, rows) => {
-        if (err) return res.status(500).json({ message: "DB error", error: err.message });
-        data.totalEmployees = rows[0].cnt;
-        data.activeLeaves = 5;
-        data.upcomingHolidays = 2;
-        data.pendingTasks = ["Approve pending leaves"];
-        data.systemNotifications = ["System maintenance"];
-        res.json(data);
-    });
-});
-
 // ================= HOLIDAYS =================
-// GET /api/holidays
 app.get("/api/holidays", (req, res) => {
     const query = "SELECT id AS Id, year, date, holiday_name FROM holidays ORDER BY date ASC";
     db.query(query, (err, results) => {
@@ -236,7 +312,6 @@ app.get("/api/holidays", (req, res) => {
         res.json(results);
     });
 });
-
 
 app.post("/api/holidays", (req, res) => {
     const { year, date, holiday_name } = req.body;
@@ -254,7 +329,6 @@ app.post("/api/holidays", (req, res) => {
     });
 });
 
-// PUT /api/holidays/:id
 app.put("/api/holidays/:id", (req, res) => {
     const { id } = req.params;
     const { year, date, holiday_name } = req.body;
@@ -265,7 +339,6 @@ app.put("/api/holidays/:id", (req, res) => {
     });
 });
 
-// DELETE /api/holidays/:id
 app.delete("/api/holidays/:id", (req, res) => {
     const { id } = req.params;
     const query = "DELETE FROM holidays WHERE id=?";
@@ -276,8 +349,6 @@ app.delete("/api/holidays/:id", (req, res) => {
 });
 
 // ================= LEAVES =================
-
-// --- Get All Applied Leaves ---
 app.get("/api/leaves", (req, res) => {
     const sql = `
     SELECT 
@@ -306,11 +377,8 @@ app.get("/api/leaves", (req, res) => {
 
 // --- Apply Leave Route ---
 app.post("/api/leaves", (req, res) => {
-<<<<<<< HEAD
     console.log("📥 Received leave application request:", req.body);
 
-=======
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
     const {
         EmpId,
         leave_type_id,
@@ -321,69 +389,136 @@ app.post("/api/leaves", (req, res) => {
         away_from_hq
     } = req.body;
 
-<<<<<<< HEAD
-    console.log("🔍 Parsed fields:", {
-        EmpId,
-        leave_type_id,
-        start_date,
-        end_date,
-        number_of_days,
-        reason,
-        away_from_hq
-    });
-
     if (!EmpId || !leave_type_id || !start_date || !end_date || !number_of_days || !reason) {
         console.log("❌ Missing required fields");
         return res.status(400).json({ message: "Please fill all required fields." });
-=======
-    if (!EmpId || !leave_type_id || !start_date || !end_date || !number_of_days || !reason) {
-        return res.json({ message: "Please fill all required fields." });
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
     }
 
-    // Convert boolean checkbox to integer for MySQL
-    const awayFromHQValue = away_from_hq ? 1 : 0;
-<<<<<<< HEAD
-    console.log("💾 Away from HQ value:", awayFromHQValue);
-=======
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-
-    const sql = `
-    INSERT INTO leaves 
-    (EmpId, leave_type, start_date, end_date, number_of_days, reason, away_from_hq, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
-<<<<<<< HEAD
+    const checkOverlapQuery = `
+        SELECT leave_id 
+        FROM leaves 
+        WHERE EmpId = ? 
+        AND status IN ('Pending', 'Approved')
+        AND (
+            (start_date BETWEEN ? AND ?) 
+            OR (end_date BETWEEN ? AND ?)
+            OR (? BETWEEN start_date AND end_date)
+            OR (? BETWEEN start_date AND end_date)
+        )
     `;
 
-    console.log("🛠️ SQL Query:", sql);
-    console.log("📋 Query values:", [EmpId, leave_type_id, start_date, end_date, number_of_days, reason, awayFromHQValue]);
-=======
-  `;
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-
-    db.query(
-        sql, [EmpId, leave_type_id, start_date, end_date, number_of_days, reason, awayFromHQValue],
-        (err, result) => {
-            if (err) {
-                console.error("❌ SQL Error:", err.sqlMessage || err);
-<<<<<<< HEAD
-                console.error("🔧 Full error:", err);
-                return res.status(500).json({ message: "Failed to apply leave" });
-            }
-            console.log("✅ Leave applied successfully, ID:", result.insertId);
-=======
-                return res.json({ message: "Failed to apply leave" });
-            }
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-            res.json({ message: "Leave applied successfully" });
+    db.query(checkOverlapQuery, [EmpId, start_date, end_date, start_date, end_date, start_date, end_date], (checkErr, checkResults) => {
+        if (checkErr) {
+            console.error("❌ SQL Error (check overlap):", checkErr);
+            return res.status(500).json({ message: "Database error while checking leave dates" });
         }
-    );
-});
-<<<<<<< HEAD
-=======
 
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-// PUT /api/leaves/:id
+        if (checkResults.length > 0) {
+            console.log("❌ Leave application overlaps with existing leaves");
+            return res.status(400).json({
+                message: "You already have a pending or approved leave for these dates. Please check your existing leave applications."
+            });
+        }
+
+        const awayFromHQValue = away_from_hq ? 1 : 0;
+
+        const sql = `
+            INSERT INTO leaves 
+            (EmpId, leave_type, start_date, end_date, number_of_days, reason, away_from_hq, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
+        `;
+
+        db.query(
+            sql,
+            [EmpId, leave_type_id, start_date, end_date, number_of_days, reason, awayFromHQValue],
+            (err, result) => {
+                if (err) {
+                    console.error("❌ SQL Error:", err.sqlMessage || err);
+                    return res.status(500).json({ message: "Failed to apply leave" });
+                }
+
+                console.log("✅ Leave applied successfully, ID:", result.insertId);
+
+                // 1. Notify the employee who applied
+                createNotification(
+                    EmpId,
+                    'Leave Application Submitted',
+                    `Your ${leave_type_id} leave application for ${number_of_days} days has been submitted and is pending approval.`,
+                    'success',
+                    'leaves',
+                    result.insertId
+                );
+
+                // 2. Notify all admins (Fix #2: Role lives in Users table, not employees)
+                db.query(`SELECT EmpId FROM Users WHERE Role = 'admin'`, [], (adminErr, admins) => {
+                    if (adminErr) {
+                        console.error("❌ Failed to fetch admins:", adminErr);
+                    } else if (admins.length > 0) {
+                        admins.forEach(admin => {
+                            createNotification(
+                                admin.EmpId,
+                                'New Leave Application',
+                                `Employee ${EmpId} has applied for ${number_of_days} days of ${leave_type_id}. Please review.`,
+                                'info',
+                                'leaves',
+                                result.insertId
+                            );
+                        });
+                        console.log(`✅ Notifications sent to ${admins.length} admin(s)`);
+                    } else {
+                        console.log("⚠️ No admins found to notify");
+                    }
+                });
+
+                res.json({ message: "Leave applied successfully! Waiting for approval." });
+            }
+        );
+    });
+});
+
+// Update leave status with notifications
+app.post("/api/leaves/:id/status", (req, res) => {
+    const leaveId = req.params.id;
+    const { status, comments, approvedBy } = req.body;
+
+    if (!approvedBy) {
+        return res.status(400).json({ error: "Approver information is required" });
+    }
+
+    const query = `UPDATE leaves SET status = ? WHERE leave_id = ?`;
+    db.query(query, [status, leaveId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Database error while updating leave status" });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Leave not found" });
+        }
+
+        db.query(`SELECT EmpId, leave_type, number_of_days FROM leaves WHERE leave_id = ?`, [leaveId], (err, leaveResults) => {
+            if (err) {
+                console.error("Failed to fetch leave details for notification:", err);
+            } else if (leaveResults.length > 0) {
+                const leave = leaveResults[0];
+
+                createNotification(
+                    leave.EmpId,
+                    `Leave Application ${status}`,
+                    `Your ${leave.leave_type} leave application for ${leave.number_of_days} days has been ${status.toLowerCase()}. ${comments || ''}`,
+                    status === 'Approved' ? 'success' : 'warning',
+                    'leaves',
+                    leaveId
+                );
+
+                console.log(`✅ Status notification sent to employee ${leave.EmpId}`);
+            }
+        });
+
+        res.json({ message: `Leave ${status} successfully` });
+    });
+});
+
+// Fix #9: notify employee here too, since this route also changes leave status
 app.put('/api/leaves/:id', (req, res) => {
     const leaveId = req.params.id;
     const { status, role } = req.body;
@@ -403,13 +538,28 @@ app.put('/api/leaves/:id', (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: "Leave not found" });
         }
+
+        db.query(`SELECT EmpId, leave_type, number_of_days FROM leaves WHERE leave_id = ?`, [leaveId], (err2, leaveResults) => {
+            if (err2) {
+                console.error("Failed to fetch leave details for notification:", err2);
+            } else if (leaveResults.length > 0) {
+                const leave = leaveResults[0];
+                createNotification(
+                    leave.EmpId,
+                    `Leave Application ${status}`,
+                    `Your ${leave.leave_type} leave application for ${leave.number_of_days} days has been ${status.toLowerCase()}.`,
+                    status === 'Approved' ? 'success' : 'warning',
+                    'leaves',
+                    leaveId
+                );
+            }
+        });
+
         res.json({ message: `Leave ${status} successfully` });
     });
 });
 
 // ================= LEAVE MASTER ROUTES =================
-
-// GET leave master data
 app.get("/api/leave_master", (req, res) => {
     const role = req.query.role || 'employee';
     const empId = (req.query.EmpId || '').trim();
@@ -436,12 +586,10 @@ app.get("/api/leave_master", (req, res) => {
                 error: err.message
             });
         }
-
         res.json(results || []);
     });
 });
 
-// POST - Add or update leave balance
 app.post("/api/leave_master", (req, res) => {
     const { EmpId, leave_type_id, leave_desc, balance } = req.body;
 
@@ -449,11 +597,10 @@ app.post("/api/leave_master", (req, res) => {
         return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Map numeric leave_type_id to leave_code
     const leaveCodeMap = {
-        1: 'CL', // Casual Leave
-        2: 'EL', // Earned Leave  
-        3: 'HL' // Hospital Leave
+        1: 'CL',
+        2: 'EL',
+        3: 'HL'
     };
 
     const leave_code = leaveCodeMap[leave_type_id] || leave_type_id;
@@ -475,7 +622,6 @@ app.post("/api/leave_master", (req, res) => {
                 error: err.message
             });
         }
-
         res.json({
             message: "Leave balance saved successfully",
             affectedRows: result.affectedRows
@@ -483,82 +629,7 @@ app.post("/api/leave_master", (req, res) => {
     });
 });
 
-// --- Get Single Leave Application Details for View Page ---
-app.get("/api/leave_applications/:id", (req, res) => {
-    const leaveId = req.params.id;
-
-    const sql = `
-    SELECT 
-      l.leave_id as Id,
-      l.EmpId,
-      e.Name as employeeName,
-      l.leave_type as leave_name,
-      l.start_date,
-      l.end_date,
-      l.number_of_days,
-      l.reason,
-      l.away_from_hq,
-      l.status,
-      l.created_at
-    FROM leaves l
-    LEFT JOIN employees e ON l.EmpId = e.EmpId
-    WHERE l.leave_id = ?
-  `;
-
-    db.query(sql, [leaveId], (err, results) => {
-        if (err) {
-            console.error("❌ SQL Error (fetch leave application):", err.sqlMessage || err);
-            return res.status(500).json({ error: "Database error" });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: "Leave application not found" });
-        }
-        res.json(results[0]);
-    });
-});
-
-// --- Update Leave Application Status for View Page ---
-app.post("/api/leave_applications/:id/status", (req, res) => {
-    const leaveId = req.params.id;
-    const { status, comments } = req.body;
-    const role = req.headers.role;
-
-    if (role !== 'admin') {
-        return res.status(403).json({ error: "Only admin can approve/reject leave" });
-    }
-
-    const query = `UPDATE leaves SET status = ? WHERE leave_id = ?`;
-    db.query(query, [status, leaveId], (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: "Database error while updating leave status" });
-        }
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: "Leave not found" });
-        }
-        res.json({ message: `Leave ${status} successfully` });
-    });
-});
-
-// Apply a new leave
-app.post("/api/leave_applications", (req, res) => {
-    const { EmpId, leave_type_id, start_date, end_date, number_of_days, reason, away_from_hq } = req.body;
-    if (!EmpId || !leave_type_id || !start_date || !end_date || !number_of_days || !reason) {
-        return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const sql = `
-    INSERT INTO leave_applications
-      (EmpId, leave_type_id, start_date, end_date, number_of_days, reason, away_from_hq, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
-  `;
-
-    db.query(sql, [EmpId, leave_type_id, start_date, end_date, number_of_days, reason, away_from_hq || 0], (err, result) => {
-        if (err) return res.status(500).json({ message: "Failed to apply leave", error: err.message });
-        res.json({ message: "Leave applied successfully", leaveId: result.insertId });
-    });
-});
-
+// ================= REPORTS =================
 app.get("/reports", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "reports.html"));
 });
@@ -579,55 +650,128 @@ app.get('/api/leave-summary', (req, res) => {
 
     let sql = `
     SELECT 
-        la.Id,
-        la.EmpId,
+        l.leave_id as Id,
+        l.EmpId,
         e.Name AS employeeName,
-        lt.leave_name AS leaveType,
-        la.start_date,
-        la.end_date,
-        la.number_of_days,
-        la.status
-    FROM leave_applications la
-    JOIN employees e ON la.EmpId = e.EmpId
-    JOIN leave_types lt ON la.leave_type_id = lt.Id
+        l.leave_type as leaveType,
+        l.start_date,
+        l.end_date,
+        l.number_of_days as numDays,
+        l.status
+    FROM leaves l
+    JOIN employees e ON l.EmpId = e.EmpId
     WHERE 1=1
   `;
 
     const params = [];
-    if (empId) {
-        sql += " AND la.EmpId=?";
+    if (empId && empId !== "All Employees") {
+        sql += " AND l.EmpId = ?";
         params.push(empId);
     }
     if (startDate) {
-        sql += " AND la.end_date >= ?";
+        sql += " AND l.start_date >= ?";
         params.push(startDate);
-    } // overlap logic
+    }
     if (endDate) {
-        sql += " AND la.start_date <= ?";
+        sql += " AND l.end_date <= ?";
         params.push(endDate);
     }
 
-    sql += " ORDER BY la.start_date DESC";
+    sql += " ORDER BY l.start_date DESC";
 
     db.query(sql, params, (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(results); // always return the array
+        if (err) {
+            console.error("Leave summary error:", err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results || []);
     });
 });
 
-// --- Attendance Reports API ---
+// Fix #3 (leave_code, not leave_name) + Fix #4 (SUM, not COUNT)
+app.get("/api/employee-leave-balance", (req, res) => {
+    const { empId } = req.query;
+
+    if (!empId) {
+        return res.status(400).json({ message: "Employee ID is required" });
+    }
+
+    const sql = `
+        SELECT 
+            lm.leave_code,
+            lt.leave_name,
+            lm.balance as total_balance,
+            COALESCE((
+                SELECT SUM(number_of_days) 
+                FROM leaves 
+                WHERE EmpId = ? 
+                AND leave_type = lt.leave_code 
+                AND status = 'Approved'
+                AND YEAR(start_date) = YEAR(CURDATE())
+            ), 0) as leaves_used,
+            (lm.balance - COALESCE((
+                SELECT SUM(number_of_days) 
+                FROM leaves 
+                WHERE EmpId = ? 
+                AND leave_type = lt.leave_code 
+                AND status = 'Approved'
+                AND YEAR(start_date) = YEAR(CURDATE())
+            ), 0)) as available_balance
+        FROM leave_master lm
+        LEFT JOIN leave_types lt ON lm.leave_code = lt.leave_code
+        WHERE lm.EmpId = ? AND lm.balance > 0
+        ORDER BY lm.leave_code
+    `;
+
+    db.query(sql, [empId, empId, empId], (err, results) => {
+        if (err) {
+            console.error("❌ SQL Error (employee leave balance):", err);
+            return res.status(500).json({
+                message: "Failed to fetch leave balance",
+                error: err.message
+            });
+        }
+        res.json(results);
+    });
+});
+
 app.get("/api/attendance-reports", (req, res) => {
     const { startDate, endDate, empId, department } = req.query;
 
-    // Use correct column names
-    let sql = `SELECT a.EmpId, e.Name, e.Dept, a.AttendanceDate, a.SignIn, a.SignOut, a.WorkHrs, a.LateHrs, a.Remarks
-               FROM Attendance a
-               JOIN employees e ON a.EmpId = e.EmpId
-               WHERE a.AttendanceDate BETWEEN ? AND ?`;
+    let sql = `
+        SELECT 
+            a.EmpId,
+            e.Name,
+            e.Dept,
+            a.AttendanceDate,
+            a.SignIn,
+            a.SignOut,
+            ROUND(GREATEST(TIME_TO_SEC(TIMEDIFF(a.SignIn, '09:30:00')) / 3600, 0), 2) AS LateHrs,
+            ROUND(
+                CASE
+                    WHEN a.SignIn IS NULL OR a.SignOut IS NULL THEN 0
+                    WHEN a.SignOut < a.SignIn THEN 
+                        TIME_TO_SEC(TIMEDIFF(ADDTIME(a.SignOut, '24:00:00'), a.SignIn)) / 3600
+                    ELSE TIME_TO_SEC(TIMEDIFF(a.SignOut, a.SignIn)) / 3600
+                END,
+            2) AS WorkHrs,
+            a.Remarks,
+            h.id AS HolidayId,
+            h.holiday_name,
+            CASE
+                WHEN DAYOFWEEK(a.AttendanceDate) = 1 THEN 'Sunday'
+                WHEN h.id IS NOT NULL THEN 'Holiday'
+                ELSE 'Working Day'
+            END AS DayType
+        FROM Attendance a
+        JOIN employees e ON a.EmpId = e.EmpId
+        LEFT JOIN holidays h ON DATE(a.AttendanceDate) = DATE(h.date)
+        WHERE a.AttendanceDate BETWEEN ? AND ?
+    `;
 
     const params = [startDate, endDate];
 
-    if (empId) {
+    if (empId && empId !== "") {
         sql += " AND a.EmpId = ?";
         params.push(empId);
     }
@@ -637,195 +781,214 @@ app.get("/api/attendance-reports", (req, res) => {
         params.push(department);
     }
 
-    db.query(sql, params, (err, results) => {
-        if (err) {
-            console.error("SQL Error:", err); // Log full error
-            return res.json({ error: err.message });
-        }
-
-        // Transform results to match frontend
-        const transformed = results.map(r => ({
-            EmpId: r.EmpId,
-            Name: r.Name,
-            Date: r.AttendanceDate.toISOString().split('T')[0],
-            Status: r.LateHrs > 0 ? "Late" : "Present",
-            LateHours: r.LateHrs,
-            WorkedHours: r.WorkHrs,
-            Discrepancies: r.Remarks
-        }));
-
-        res.json(transformed);
-    });
-});
-
-// API to get leave reports
-app.get("/api/leaves/reports", (req, res) => {
-    const { employeeId, leaveType, status } = req.query;
-
-    let query = `
-    SELECT EmpId,
-           CASE leave_type_id
-             WHEN 1 THEN 'CL'
-             WHEN 2 THEN 'EL'
-             WHEN 3 THEN 'HL'
-           END AS leave_type,
-           leave_desc AS Reason,
-           status AS Status
-    FROM leave_master
-    WHERE 1=1
-  `;
-
-    const params = [];
-
-    if (employeeId && employeeId !== "All") {
-        query += " AND EmpId = ?";
-        params.push(employeeId);
-    }
-
-    if (leaveType && leaveType !== "All") {
-        query += " AND leave_type_id = ?";
-        params.push(leaveType);
-    }
-
-    if (status && status !== "All") {
-        query += " AND status = ?";
-        params.push(status);
-    }
-
-    console.log("Query:", query);
-    console.log("Params:", params);
-
-    db.query(query, params, (err, results) => {
-        if (err) {
-            console.error("Query error:", err);
-            return res.status(500).json([]);
-        }
-        res.json(results);
-    });
-});
-<<<<<<< HEAD
-// Add this to your server.js in the LEAVES section
-app.get("/api/leaves-report", (req, res) => {
-    const { employeeId, leaveType, status } = req.query;
-
-    let sql = `
-        SELECT 
-            l.EmpId,
-            l.leave_type as leaveType,
-            l.reason,
-            l.status
-        FROM leaves l
-        WHERE 1=1
-    `;
-
-    const params = [];
-
-    if (employeeId && employeeId !== "All") {
-        sql += " AND l.EmpId = ?";
-        params.push(employeeId);
-    }
-
-    if (leaveType && leaveType !== "All") {
-        const typeMap = { '1': 'Casual Leave', '2': 'Earned Leave', '3': 'Hospital Leave' };
-        sql += " AND l.leave_type = ?";
-        params.push(typeMap[leaveType]);
-    }
-
-    if (status && status !== "All") {
-        sql += " AND l.status = ?";
-        params.push(status);
-    }
+    sql += " ORDER BY a.AttendanceDate ASC, a.EmpId ASC";
 
     db.query(sql, params, (err, results) => {
         if (err) {
-            console.error("Leave report error:", err);
-            return res.status(500).json([]);
+            console.error("SQL Error:", err);
+            return res.status(500).json({ error: err.message });
         }
-        res.json(results);
+
+        const formatted = results.map(r => {
+            const d = new Date(r.AttendanceDate);
+            const formattedDate = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+
+            let status = "Absent";
+            let discrepancies = "-";
+
+            if (r.DayType === "Sunday" || r.DayType === "Holiday") {
+                status = r.DayType;
+                discrepancies = "-";
+            } else if (r.SignIn && r.SignIn !== '00:00:00') {
+                if (r.LateHrs > 0) {
+                    status = "Late";
+                    discrepancies = "Late";
+                } else {
+                    status = "Present";
+                    discrepancies = r.Remarks || "-";
+                }
+            }
+
+            return {
+                EmpId: r.EmpId,
+                Name: r.Name,
+                Department: r.Dept,
+                Date: formattedDate,
+                SignIn: r.SignIn,
+                SignOut: r.SignOut,
+                WorkedHours: r.WorkHrs,
+                LateHours: r.LateHrs,
+                Status: status,
+                Discrepancies: discrepancies,
+                DayType: r.DayType
+            };
+        });
+
+        res.json(formatted);
     });
 });
 
-=======
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-// ================= LEAVE MASTER & BALANCE ROUTES =================
+// ================= NOTIFICATION ROUTES (Fix #1: duplicates removed) =================
 
-// Fetch leave balance for specific employee + leave type
-app.get("/api/leave_balance", (req, res) => {
-    const { empId, leave_code } = req.query;
+// Get notifications for employee
+app.get("/api/notifications", (req, res) => {
+    const { empId } = req.query;
 
-    if (!empId || !leave_code) {
-        return res.status(400).json({ message: "Missing empId or leave_code" });
+    if (!empId) {
+        return res.status(400).json({ message: "Employee ID is required" });
     }
 
-    const sql = `SELECT balance, leave_desc 
-                 FROM leave_master 
-                 WHERE EmpId = ? AND leave_code = ?`;
-
-    db.query(sql, [empId, leave_code], (err, results) => {
-        if (err) {
-            console.error("SQL error:", err);
-            return res.status(500).json({ message: "Database error" });
-        }
-
-        if (results.length === 0) {
-            return res.status(404).json({ message: "No record found" });
-        }
-
-        res.json(results[0]);
-    });
-});
-
-
-// Update leave balance (Adjust Leave Balance)
-app.post("/api/adjust_leave_balance", (req, res) => {
-    const { EmpId, leave_type_id, leave_desc, balance } = req.body;
-
-    if (!EmpId || !leave_type_id || balance === undefined) {
-        return res.status(400).json({ message: "All fields are required" });
-    }
-
-    // Map numeric leave_type_id to leave_code (same mapping used elsewhere)
-    const leaveCodeMap = {
-        1: 'CL', // Casual Leave
-        2: 'EL', // Earned Leave
-<<<<<<< HEAD
-        3: 'HL' // Hospital Leave
-=======
-        3: 'HL'  // Hospital Leave
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-    };
-
-    const leave_code = leaveCodeMap[leave_type_id] || leave_type_id;
-
-    const query = `
-        INSERT INTO leave_master (EmpId, leave_code, leave_desc, balance)
-        VALUES (?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-            balance = VALUES(balance),
-            leave_desc = VALUES(leave_desc),
-            updated_at = CURRENT_TIMESTAMP
+    const sql = `
+        SELECT id, emp_id, title, message, type, is_read, related_module, related_id, created_at
+        FROM notifications 
+        WHERE emp_id = ? 
+        ORDER BY created_at DESC 
+        LIMIT 50
     `;
 
-    db.query(query, [EmpId, leave_code, leave_desc || '', parseFloat(balance)], (err, result) => {
+    db.query(sql, [empId], (err, results) => {
         if (err) {
-            console.error("❌ SQL Error (adjust leave balance):", err);
-            return res.status(500).json({ message: "Failed to update leave balance", error: err.message });
+            console.error("❌ SQL Error (fetch notifications):", err);
+            return res.status(500).json({ message: "Failed to fetch notifications" });
         }
-        res.json({ message: "Leave balance updated successfully" });
+        res.json(results || []);
     });
 });
 
+// Mark ONE notification as read (kept the safer version that also checks empId)
+app.put("/api/notifications/:id/read", (req, res) => {
+    const notificationId = req.params.id;
+    const { empId } = req.body;
 
-// Get all leave types
-app.get("/api/leave_types", (req, res) => {
-    const query = "SELECT * FROM leave_types ORDER BY Id";
+    if (!empId) {
+        return res.status(400).json({ message: "Employee ID is required" });
+    }
 
-    db.query(query, (err, results) => {
+    const sql = "UPDATE notifications SET is_read = 1 WHERE id = ? AND emp_id = ?";
+
+    db.query(sql, [notificationId, empId], (err, result) => {
         if (err) {
-            console.error("❌ SQL Error (fetch leave types):", err);
-            return res.status(500).json({ message: "Failed to fetch leave types", error: err.message });
+            console.error("❌ SQL Error (mark notification read):", err);
+            return res.status(500).json({ message: "Failed to update notification" });
         }
-        res.json(results);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Notification not found" });
+        }
+
+        res.json({ message: "Notification marked as read" });
+    });
+});
+
+// Mark all notifications as read for user
+app.put("/api/notifications/mark-all-read", (req, res) => {
+    const { empId } = req.body;
+
+    if (!empId) {
+        return res.status(400).json({ message: "Employee ID is required" });
+    }
+
+    const sql = "UPDATE notifications SET is_read = 1 WHERE emp_id = ? AND is_read = 0";
+
+    db.query(sql, [empId], (err, result) => {
+        if (err) {
+            console.error("❌ SQL Error (mark all read):", err);
+            return res.status(500).json({ message: "Failed to mark all as read" });
+        }
+
+        res.json({
+            message: "All notifications marked as read",
+            updatedCount: result.affectedRows
+        });
+    });
+});
+
+// Get unread notification count (kept only ONE copy)
+app.get("/api/notifications/unread-count", (req, res) => {
+    const { empId } = req.query;
+
+    if (!empId) {
+        return res.status(400).json({ message: "Employee ID is required" });
+    }
+
+    const sql = "SELECT COUNT(*) as unreadCount FROM notifications WHERE emp_id = ? AND is_read = 0";
+
+    db.query(sql, [empId], (err, results) => {
+        if (err) {
+            console.error("❌ SQL Error (unread count):", err);
+            return res.status(500).json({ message: "Failed to get unread count" });
+        }
+        res.json({ unreadCount: results[0].unreadCount });
+    });
+});
+
+// ================= DASHBOARD API (Fix #10: merged, only ONE dashboard route) =================
+app.get("/api/dashboard", (req, res) => {
+    const empId = (req.query.empId || "").trim();
+    const role = req.query.role || "employee";
+
+    console.log("Dashboard API called - Role:", role, "EmpId:", empId);
+
+    const data = {};
+
+    db.query("SELECT COUNT(*) AS cnt FROM employees", (err, rows) => {
+        if (err) return res.status(500).json({ message: "DB error", error: err.message });
+        data.totalEmployees = rows[0].cnt;
+
+        const today = getTodayDate();
+        const holidayQuery = "SELECT COUNT(*) AS cnt FROM holidays WHERE date >= ? ORDER BY date ASC";
+
+        db.query(holidayQuery, [today], (err, holidayRows) => {
+            if (err) return res.status(500).json({ message: "DB error", error: err.message });
+            data.upcomingHolidays = holidayRows[0].cnt;
+
+            // Fix #3 (leave_code) + Fix #4 (SUM instead of COUNT).
+            // Admin and employee use the same query shape here, so no need to duplicate it.
+            const leaveBalanceQuery = `
+                SELECT 
+                    lm.leave_code,
+                    lt.leave_name,
+                    lm.balance as total_balance,
+                    COALESCE((
+                        SELECT SUM(number_of_days) 
+                        FROM leaves 
+                        WHERE EmpId = ? 
+                        AND leave_type = lt.leave_code 
+                        AND status = 'Approved'
+                        AND YEAR(start_date) = YEAR(CURDATE())
+                    ), 0) as leaves_taken,
+                    lm.balance - COALESCE((
+                        SELECT SUM(number_of_days) 
+                        FROM leaves 
+                        WHERE EmpId = ? 
+                        AND leave_type = lt.leave_code 
+                        AND status = 'Approved'
+                        AND YEAR(start_date) = YEAR(CURDATE())
+                    ), 0) as remaining_balance
+                FROM leave_master lm
+                LEFT JOIN leave_types lt ON lm.leave_code = lt.leave_code
+                WHERE lm.EmpId = ? AND lm.balance > 0
+                ORDER BY lm.leave_code
+            `;
+            const queryParams = [empId, empId, empId];
+
+            db.query(leaveBalanceQuery, queryParams, (err, balanceRows) => {
+                if (err) {
+                    console.error("Error fetching leave balance:", err);
+                    data.activeLeaves = 0;
+                    data.leaveBreakdown = [];
+                } else {
+                    const totalBalance = balanceRows.reduce((sum, row) => sum + parseFloat(row.total_balance || 0), 0);
+                    data.activeLeaves = totalBalance;
+                    data.leaveBreakdown = balanceRows;
+                }
+
+                data.pendingTasks = ["Approve pending leaves"];
+                data.systemNotifications = ["System maintenance"];
+
+                res.json(data);
+            });
+        });
     });
 });
 

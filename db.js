@@ -9,14 +9,52 @@ const PORT = 3000;
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root', // your MySQL username
-<<<<<<< HEAD
-    password: '@Prasi05@', // your MySQL password
-=======
-    password: 'root', // your MySQL password
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
+    password: 'Root@123', // your MySQL password
     database: 'hr_system' // your database name
 });
+// --- MySQL connection ---
+const db = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "Root@123",
+    database: "hr_system"
+});
 
+db.connect(err => {
+    if (err) {
+        console.error("MySQL connection failed:", err.message);
+        process.exit(1);
+    }
+    console.log("✅ Connected to MySQL (hr_system)");
+});
+
+// ================= NOTIFICATION FUNCTION =================
+const createNotification = async (empId, title, message, type, relatedModule, relatedId) => {
+    return new Promise((resolve, reject) => {
+        const sql = `
+            INSERT INTO notifications 
+            (emp_id, title, message, type, is_read, related_module, related_id, created_at)
+            VALUES (?, ?, ?, ?, 0, ?, ?, CURRENT_TIMESTAMP)
+        `;
+        
+        db.query(sql, [empId, title, message, type, relatedModule, relatedId], (err, result) => {
+            if (err) {
+                console.error("❌ Notification creation failed:", err);
+                reject(err);
+            } else {
+                console.log("✅ Notification created for EmpId:", empId);
+                resolve(result);
+            }
+        });
+    });
+};
+
+// ================= ROUTES =================
+
+// Serve frontend index
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 connection.connect(err => {
     if (err) throw err;
     console.log('Connected to MySQL');
@@ -57,7 +95,6 @@ app.post('/users', (req, res) => {
         res.json({ message: 'User added', userId: result.insertId });
     });
 });
-<<<<<<< HEAD
 // Get attendance with Present/Absent/Holiday status
 app.get('/attendance', (req, res) => {
     // Optional: get date range from query params, else default
@@ -88,8 +125,6 @@ app.get('/attendance', (req, res) => {
         res.json(results);
     });
 });
-=======
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
 
 // --- 4. Start server ---
 app.listen(PORT, () => {

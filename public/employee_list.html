@@ -1,61 +1,440 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Employee Management</title>
-<style>
-  body { font-family: Arial; padding: 20px; background: #f5f7fa; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
-  th { background: #3498db; color: white; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        /* ===== SIDEBAR STYLES ===== */
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar .menu {
+            padding-top: 20px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+            color: #2c3e50;
+            padding: 0 15px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #555;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 15px;
+            border-radius: 6px;
+            margin: 5px 10px;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar a:hover {
+            background: #f0f0f0;
+        }
+
+        .sidebar a.active {
+            background: #f0f0f0;
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .sidebar .support {
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .submenu {
+            display: none;
+            flex-direction: column;
+            margin-left: 15px;
+            border-left: 2px solid #e0e0e0;
+            position: relative;
+            width: calc(100% - 30px);
+        }
+
+        .submenu.active {
+            display: flex;
+        }
+
+        .submenu a {
+            padding: 10px 15px;
+            margin: 2px 10px;
+            font-size: 14px;
+        }
+
+        .submenu a i {
+            font-size: 12px;
+        }
+
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .menu-toggle .arrow {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+
+        .menu-toggle.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* EXISTING STYLES */
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        
+        th {
+            background: #3498db;
+            color: white;
+        }
+        
+       .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .add-employee-link {
+            background: #3498db;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+            font-weight: 500;
+        }
+
+        .add-employee-link:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .add-employee-link i {
+            font-size: 14px;
+        }
+
+        /* PAGINATION STYLES */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        .pagination button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .page-info {
+            margin: 0 15px;
+            font-weight: 500;
+        }
+    </style>
 </head>
+
 <body>
+    <!-- ADMIN-ONLY ACCESS CHECK -->
+    <script>
+        const role = localStorage.getItem("role");
+        if (role !== "admin") {
+            alert("Access denied!");
+            window.location.href = "dashboard.html";
+        }
+    </script>
 
-<h2>All Employees</h2>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="menu">
+            <h2>ALMS</h2>
+            <a href="dashboard.html">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+            
+            <!-- Employees - Admin Only -->
+            <a href="employee_list.html" id="empMgmtLink" class="active">
+                <i class="fa-solid fa-users"></i> Employees
+            </a>
+            
+            <a href="attendance.html">
+                <i class="fa-regular fa-clock"></i> Attendance
+            </a>
+            
+            <a href="holidays.html">
+                <i class="fa-regular fa-calendar"></i> Holidays
+            </a>
 
-<table>
-  <thead>
-    <tr>
-      <th>EmpId</th>
-      <th>Name</th>
-      <th>Department</th>
-      <th>Designation</th>
-      <th>Active</th>
-    </tr>
-  </thead>
-  <tbody id="employeeTableBody">
-    <!-- Employees will be injected here -->
-  </tbody>
-</table>
+            <!-- Leaves with sub-menu -->
+            <a href="javascript:void(0)" id="leavesToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-bar"></i> Leaves
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="leavesSubmenu" class="submenu">
+                <a href="leave_applications.html">
+                    <i class="fa-regular fa-circle"></i> Leave Applications
+                </a>
+                <a href="leave_master.html">
+                    <i class="fa-regular fa-circle"></i> Leave Master
+                </a>
+            </div>
 
-<script>
-async function loadEmployees() {
-  try {
-    const res = await fetch("http://localhost:3000/api/employees");
-    const employees = await res.json();
-    const tableBody = document.getElementById("employeeTableBody");
-    tableBody.innerHTML = "";
+            <!-- Reports with sub-menu - Admin Only -->
+            <a href="javascript:void(0)" id="reportsToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-pie"></i> Reports
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="reportsSubmenu" class="submenu">
+                <a href="reports.html">
+                    <i class="fa-regular fa-circle"></i> General Reports
+                </a>
+                <a href="attendance_report.html">
+                    <i class="fa-regular fa-circle"></i> Attendance Reports
+                </a>
+                <a href="leave_report.html">
+                    <i class="fa-regular fa-circle"></i> Leave Reports
+                </a>
+            </div>
 
-    employees.forEach(emp => {
-      const row = `<tr>
-        <td>${emp.EmpId}</td>
-        <td>${emp.Name}</td>
-        <td>${emp.Dept}</td>
-        <td>${emp.Design}</td>
-        <td>${emp.Active ? "Yes" : "No"}</td>
-      </tr>`;
-      tableBody.innerHTML += row;
-    });
-  } catch (err) {
-    console.error("Error loading employees:", err);
-  }
-}
+            <a href="#">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
+        </div>
+        
+        <div class="support">
+            <a href="#">
+                <i class="fa-regular fa-circle-question"></i> Help & Support
+            </a>
+        </div>
+    </div>
 
-// Load employees on page load
-loadEmployees();
-</script>
+    <div class="main-content">
+        <!-- EXISTING CONTENT -->
+        <h2>All Employees</h2>
+        <div class="header-container">
+            <a href="add_employee.html" class="add-employee-link">
+                <i class="fas fa-plus"></i> Add New Employee
+            </a>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>EmpId</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Active</th>
+                </tr>
+            </thead>
+            <tbody id="employeeTableBody">
+                <!-- Employees will be injected here -->
+            </tbody>
+        </table>
+        
+        <!-- PAGINATION CONTROLS -->
+        <div class="pagination">
+            <button id="prevPage" disabled>Previous</button>
+            <span class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+            <button id="nextPage" disabled>Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Submenu toggle functionality
+            const leavesToggle = document.getElementById("leavesToggle");
+            const leavesSubmenu = document.getElementById("leavesSubmenu");
+            
+            if (leavesToggle && leavesSubmenu) {
+                leavesToggle.addEventListener('click', () => {
+                    leavesToggle.classList.toggle('active');
+                    leavesSubmenu.classList.toggle('active');
+                });
+            }
+
+            const reportsToggle = document.getElementById("reportsToggle");
+            const reportsSubmenu = document.getElementById("reportsSubmenu");
+            
+            if (reportsToggle && reportsSubmenu) {
+                reportsToggle.addEventListener('click', () => {
+                    reportsToggle.classList.toggle('active');
+                    reportsSubmenu.classList.toggle('active');
+                });
+            }
+
+            // Set active page highlighting
+            const currentPage = window.location.pathname.split("/").pop();
+            const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
+            
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage || (currentPage === '' && href === 'dashboard.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+
+        // PAGINATION VARIABLES
+        let currentPage = 1;
+        const pageSize = 10; // Fixed to 10 employees per page
+        let allEmployees = [];
+        let totalPages = 1;
+
+        // DOM ELEMENTS
+        const employeeTableBody = document.getElementById("employeeTableBody");
+        const currentPageSpan = document.getElementById("currentPage");
+        const totalPagesSpan = document.getElementById("totalPages");
+        const prevPageBtn = document.getElementById("prevPage");
+        const nextPageBtn = document.getElementById("nextPage");
+
+        // LOAD EMPLOYEES
+        async function loadEmployees() {
+            try {
+                const res = await fetch("http://localhost:3000/api/employees");
+                allEmployees = await res.json();
+                updatePagination();
+                renderCurrentPage();
+            } catch (err) {
+                console.error("Error loading employees:", err);
+            }
+        }
+
+        // RENDER CURRENT PAGE
+        function renderCurrentPage() {
+            employeeTableBody.innerHTML = "";
+            
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, allEmployees.length);
+            const pageEmployees = allEmployees.slice(startIndex, endIndex);
+            
+            pageEmployees.forEach(emp => {
+                const row = `<tr>
+                    <td>${emp.EmpId}</td>
+                    <td>${emp.Name}</td>
+                    <td>${emp.Dept}</td>
+                    <td>${emp.Design}</td>
+                    <td>${emp.Active ? "Yes" : "No"}</td>
+                </tr>`;
+                employeeTableBody.innerHTML += row;
+            });
+        }
+
+        // UPDATE PAGINATION CONTROLS
+        function updatePagination() {
+            totalPages = Math.ceil(allEmployees.length / pageSize);
+            totalPages = Math.max(totalPages, 1); // Ensure at least 1 page
+            
+            currentPageSpan.textContent = currentPage;
+            totalPagesSpan.textContent = totalPages;
+            
+            // Enable/disable buttons
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages;
+        }
+
+        // PAGINATION EVENT HANDLERS
+        prevPageBtn.addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderCurrentPage();
+                updatePagination();
+            }
+        });
+
+        nextPageBtn.addEventListener("click", () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderCurrentPage();
+                updatePagination();
+            }
+        });
+
+        // Load employees on page load
+        loadEmployees();
+    </script>
 
 </body>
+
 </html>

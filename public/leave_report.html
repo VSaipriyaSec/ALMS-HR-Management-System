@@ -1,11 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
-<<<<<<< HEAD
 
 <head>
     <meta charset="UTF-8">
-    <title>Leave Reports - HR System</title>
+    <title>Leave Reports - ALMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
+        /* ===== SIDEBAR STYLES ===== */
+        
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .sidebar .menu {
+            padding-top: 20px;
+            flex: 1;
+        }
+        
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+            color: #2c3e50;
+            padding: 0 15px;
+        }
+        
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #555;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 15px;
+            border-radius: 6px;
+            margin: 5px 10px;
+        }
+        
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar a:hover {
+            background: #f0f0f0;
+        }
+        
+        .sidebar a.active {
+            background: #f0f0f0;
+            color: #3498db;
+            font-weight: 600;
+        }
+        
+        .sidebar .support {
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .submenu {
+            display: none;
+            flex-direction: column;
+            margin-left: 15px;
+            border-left: 2px solid #e0e0e0;
+            position: relative;
+            width: calc(100% - 30px);
+        }
+        
+        .submenu.active {
+            display: flex;
+        }
+        
+        .submenu a {
+            padding: 10px 15px;
+            margin: 2px 10px;
+            font-size: 14px;
+        }
+        
+        .submenu a i {
+            font-size: 12px;
+        }
+        
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .menu-toggle .arrow {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+        
+        .menu-toggle.active .arrow {
+            transform: rotate(180deg);
+        }
+        /* EXISTING STYLES */
+        
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -26,11 +136,14 @@
         .navbar .brand {
             font-weight: bold;
             font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .navbar .menu {
-            display: flex;
-            gap: 20px;
+            display: none;
+            /* Hide navigation elements */
         }
         
         .navbar .menu a {
@@ -162,294 +275,259 @@
         table th {
             font-weight: bold;
         }
+        /* PDF Export Styles */
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .main-content,
+            .main-content * {
+                visibility: visible;
+            }
+            .main-content {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 20px;
+            }
+            .sidebar,
+            .navbar,
+            .actions,
+            .filters {
+                display: none !important;
+            }
+            table {
+                width: 100%;
+                border: 2px solid #000;
+            }
+            th {
+                background: #f0f0f0 !important;
+                color: #000 !important;
+            }
+        }
+        /* Status colors for table */
+        
+        .status-approved {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        
+        .status-rejected {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .report-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
     </style>
 </head>
 
 <body>
-    <!-- Navbar -->
-    <div class="navbar">
-        <div class="brand">HR System</div>
+    <!-- Sidebar -->
+    <div class="sidebar">
         <div class="menu">
-            <a href="#">Dashboard</a>
-            <a href="#">Employees</a>
-            <a href="#">Attendance</a>
-            <a href="#"><b>Holidays</b></a>
-            <a href="#">Leaves</a>
-            <a href="#">Reports</a>
-            <a href="#">Profile</a>
+            <h2>ALMS</h2>
+            <a href="dashboard.html">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+
+            <!-- Employees - Admin Only -->
+            <a href="employee_list.html" id="empMgmtLink" style="display: none;">
+                <i class="fa-solid fa-users"></i> Employees
+            </a>
+
+            <a href="attendance.html">
+                <i class="fa-regular fa-clock"></i> Attendance
+            </a>
+
+            <a href="holidays.html">
+                <i class="fa-regular fa-calendar"></i> Holidays
+            </a>
+
+            <!-- Leaves with sub-menu -->
+            <a href="javascript:void(0)" id="leavesToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-bar"></i> Leaves
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="leavesSubmenu" class="submenu">
+                <a href="leave_applications.html">
+                    <i class="fa-regular fa-circle"></i> Leave Applications
+                </a>
+                <a href="leave_master.html">
+                    <i class="fa-regular fa-circle"></i> Leave Master
+                </a>
+            </div>
+
+            <!-- Reports with sub-menu - Admin Only -->
+            <a href="javascript:void(0)" id="reportsToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-pie"></i> Reports
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="reportsSubmenu" class="submenu">
+                <a href="reports.html">
+                    <i class="fa-regular fa-circle"></i> General Reports
+                </a>
+                <a href="attendance_report.html">
+                    <i class="fa-regular fa-circle"></i> Attendance Reports
+                </a>
+                <a href="leave_report.html" class="active">
+                    <i class="fa-regular fa-circle"></i> Leave Reports
+                </a>
+            </div>
+
+            <a href="#">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
+        </div>
+
+        <div class="support">
+            <a href="#">
+                <i class="fa-regular fa-circle-question"></i> Help & Support
+            </a>
         </div>
     </div>
 
-    <!-- Content -->
-    <div class="container">
-        <h2>Leave Reports</h2>
-        <p class="subtext">Generate and view reports related to employee leaves.</p>
-
-        <!-- Top Actions -->
-        <div class="actions">
-            <button><span>📄</span> Export as PDF</button>
-            <button><span>📑</span> Export as CSV</button>
-        </div>
-
-        <!-- Filters -->
-        <div class="filters">
-            <h3>Filters</h3>
-            <div class="filter-row">
-                <div class="form-group">
-                    <label for="employeeId">Employee ID</label>
-                    <select id="employeeId">
-            <option value="All">All</option>
-          </select>
-                </div>
-                <div class="form-group">
-                    <label for="leaveType">Leave Type</label>
-                    <select id="leaveType">
-=======
-<head>
-  <meta charset="UTF-8">
-  <title>Leave Reports - HR System</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f9f9f9;
-      color: #333;
-    }
-
-    /* Navbar */
-    .navbar {
-      background: #fff;
-      border-bottom: 1px solid #ddd;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .navbar .brand {
-      font-weight: bold;
-      font-size: 18px;
-    }
-
-    .navbar .menu {
-      display: flex;
-      gap: 20px;
-    }
-
-    .navbar .menu a {
-      text-decoration: none;
-      color: #333;
-      font-size: 14px;
-    }
-
-    .navbar .menu a:hover {
-      color: #007bff;
-    }
-
-    /* Page Container */
-    .container {
-      padding: 20px 40px;
-    }
-
-    h2 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    p.subtext {
-      margin: 5px 0 20px;
-      font-size: 14px;
-      color: #666;
-    }
-
-    /* Top Actions */
-    .actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .actions button {
-      border: 1px solid #ddd;
-      background: #fff;
-      padding: 6px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .actions button:hover {
-      background: #f1f1f1;
-    }
-
-    /* Filters Section */
-    .filters {
-      background: #fff;
-      padding: 15px;
-      border-radius: 6px;
-      border: 1px solid #ddd;
-      margin-bottom: 20px;
-    }
-
-    .filters h3 {
-      font-size: 16px;
-      margin-bottom: 15px;
-    }
-
-    .filter-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr) auto;
-      gap: 15px;
-      align-items: end;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .form-group label {
-      font-size: 13px;
-      margin-bottom: 4px;
-      color: #555;
-    }
-
-    .form-group input, 
-    .form-group select {
-      width: 100%;
-      padding: 6px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 13px;
-    }
-
-    .filter-row button {
-      background: #007bff;
-      color: #fff;
-      border: none;
-      padding: 7px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    .filter-row button:hover {
-      background: #0056b3;
-    }
-
-    /* Table */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      border: 1px solid #ddd;
-    }
-
-    table thead {
-      background: #f1f1f1;
-    }
-
-    table th, table td {
-      padding: 8px;
-      border: 1px solid #ddd;
-      text-align: left;
-      font-size: 13px;
-    }
-
-    table th {
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-  <!-- Navbar -->
-  <div class="navbar">
-    <div class="brand">HR System</div>
-    <div class="menu">
-      <a href="#">Dashboard</a>
-      <a href="#">Employees</a>
-      <a href="#">Attendance</a>
-      <a href="#"><b>Holidays</b></a>
-      <a href="#">Leaves</a>
-      <a href="#">Reports</a>
-      <a href="#">Profile</a>
-    </div>
-  </div>
-
-  <!-- Content -->
-  <div class="container">
-    <h2>Leave Reports</h2>
-    <p class="subtext">Generate and view reports related to employee leaves.</p>
-
-    <!-- Top Actions -->
-    <div class="actions">
-      <button><span>📄</span> Export as PDF</button>
-      <button><span>📑</span> Export as CSV</button>
-    </div>
-
-    <!-- Filters -->
-    <div class="filters">
-      <h3>Filters</h3>
-      <div class="filter-row">
-        <div class="form-group">
-          <label for="employeeId">Employee ID</label>
-          <select id="employeeId">
-            <option value="All">All</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="leaveType">Leave Type</label>
-          <select id="leaveType">
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-            <option value="All">All</option>
-            <option value="1">CL</option>
-            <option value="2">EL</option>
-            <option value="3">HL</option>
-          </select>
-<<<<<<< HEAD
-                </div>
-                <div class="form-group">
-                    <label for="status">Status</label>
-                    <select id="status">
-=======
-        </div>
-        <div class="form-group">
-          <label for="status">Status</label>
-          <select id="status">
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-            <option value="All">All</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Pending">Pending</option>
-          </select>
-<<<<<<< HEAD
-                </div>
-                <button id="generateReport">Generate Report</button>
+    <div class="main-content">
+        <!-- MODIFIED NAVBAR - Only showing HR Management -->
+        <div class="navbar">
+            <div class="brand">
+                <i class="fa-solid fa-cube"></i> HR Management
+            </div>
+            <div class="menu">
+                <!-- Navigation elements removed as requested -->
             </div>
         </div>
 
-        <!-- Table -->
-        <table>
-            <thead>
-                <tr>
-                    <th>EMPLOYEE ID</th>
-                    <th>LEAVE TYPE</th>
-                    <th>REASON</th>
-                    <th>STATUS</th>
-                </tr>
-            </thead>
-            <tbody id="reportTable">
-                <!-- Data will load here -->
-            </tbody>
-        </table>
+        <!-- Content -->
+        <div class="container">
+            <h2>Leave Reports</h2>
+            <p class="subtext">Generate and view reports related to employee leaves.</p>
+
+            <!-- Top Actions -->
+            <div class="actions">
+                <button><span>📄</span> Export as PDF</button>
+                <button><span>📑</span> Export as CSV</button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <h3>Filters</h3>
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label for="employeeId">Employee ID</label>
+                        <select id="employeeId">
+                <option value="All">All</option>
+              </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="leaveType">Leave Type</label>
+                        <select id="leaveType">
+                <option value="All">All</option>
+                <option value="1">CL</option>
+                <option value="2">EL</option>
+                <option value="3">HL</option>
+              </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status">
+                <option value="All">All</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Pending">Pending</option>
+              </select>
+                    </div>
+                    <button id="generateReport">Generate Report</button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>EMPLOYEE ID</th>
+                        <th>LEAVE TYPE</th>
+                        <th>REASON</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTable">
+                    <!-- Data will load here -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const role = localStorage.getItem("role") || "employee";
+
+            // Role-based access control
+            const adminOnlyElements = [
+                'empMgmtLink',
+                'reportsToggle'
+            ];
+
+            adminOnlyElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = role === "admin" ? "flex" : "none";
+                }
+            });
+
+            // Submenu toggle functionality
+            const leavesToggle = document.getElementById("leavesToggle");
+            const leavesSubmenu = document.getElementById("leavesSubmenu");
+
+            if (leavesToggle && leavesSubmenu) {
+                leavesToggle.addEventListener('click', () => {
+                    leavesToggle.classList.toggle('active');
+                    leavesSubmenu.classList.toggle('active');
+                });
+            }
+
+            const reportsToggle = document.getElementById("reportsToggle");
+            const reportsSubmenu = document.getElementById("reportsSubmenu");
+
+            if (reportsToggle && reportsSubmenu) {
+                reportsToggle.addEventListener('click', () => {
+                    reportsToggle.classList.toggle('active');
+                    reportsSubmenu.classList.toggle('active');
+                });
+            }
+
+            // Set active page highlighting
+            const currentPage = window.location.pathname.split("/").pop();
+            const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage || (currentPage === '' && href === 'dashboard.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+
+        // EXISTING SCRIPT
         // Load employee IDs dynamically
         async function loadEmployeeIds() {
             try {
@@ -561,9 +639,42 @@
             URL.revokeObjectURL(url);
         }
 
+        // Simple PDF export using browser print
         function exportPDF() {
-            alert("PDF export would be implemented here with a PDF library");
-            // You would typically use a library like jsPDF or window.print() for PDF export
+            // Create a print-friendly version
+            const printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Leave Report - ${new Date().toLocaleDateString()}</title>
+            <style>
+                body { font-family: Arial; margin: 20px; }
+                .header { text-align: center; margin-bottom: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; font-weight: bold; }
+                .status-approved { color: green; }
+                .status-pending { color: orange; }
+                .status-rejected { color: red; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Leave Report</h1>
+                <p>Generated on: ${new Date().toLocaleDateString()}</p>
+            </div>
+            ${document.querySelector('table').outerHTML}
+        </body>
+        </html>
+    `;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
         }
 
         // Events
@@ -584,90 +695,3 @@
 </body>
 
 </html>
-=======
-        </div>
-        <button id="generateReport">Generate Report</button>
-      </div>
-    </div>
-
-    <!-- Table -->
-    <table>
-      <thead>
-        <tr>
-          <th>EMPLOYEE ID</th>
-          <th>LEAVE TYPE</th>
-          <th>REASON</th>
-          <th>STATUS</th>
-        </tr>
-      </thead>
-      <tbody id="reportTable">
-        <!-- Data will load here -->
-      </tbody>
-    </table>
-  </div>
-
-<script>
-
-
-// Load employee IDs dynamically
-async function loadEmployeeIds() {
-  try {
-    const res = await fetch("http://localhost:3000/api/employees"); // must return EmpId list
-    const employees = await res.json();
-    const empSelect = document.getElementById("employeeId");
-    employees.forEach(emp => {
-      const option = document.createElement("option");
-      option.value = emp.EmpId;
-      option.textContent = emp.EmpId;
-      empSelect.appendChild(option);
-    });
-  } catch (err) {
-    console.error("Error loading employee IDs:", err);
-  }
-}
-
-
-// Generate report
-async function generateReport() {
-  const employeeId = document.getElementById("employeeId").value;
-  const leaveType = document.getElementById("leaveType").value;
-  const status = document.getElementById("status").value;
-
-  try {
-    const res = await fetch(`http://localhost:3000/api/leaves/reports?employeeId=${employeeId}&leaveType=${leaveType}&status=${status}`);
-    const data = await res.json();
-
-    const tableBody = document.getElementById("reportTable");
-    tableBody.innerHTML = "";
-
-    if (!data || data.length === 0) {
-      tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No data found</td></tr>";
-    } else {
-      data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${row.EmpId}</td>
-          <td>${row.leave_type}</td>
-          <td>${row.Reason || "-"}</td>
-          <td>${row.Status}</td>
-        `;
-        tableBody.appendChild(tr);
-      });
-    }
-  } catch (err) {
-    console.error("Error fetching report:", err);
-  }
-}
-
-// Events
-document.getElementById("generateReport").addEventListener("click", generateReport);
-window.addEventListener("load", () => {
-  loadEmployeeIds().then(() => {
-    generateReport(); // auto-generate after loading employees
-  });
-});
-</script>
- 
-</body>
-</html>
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4

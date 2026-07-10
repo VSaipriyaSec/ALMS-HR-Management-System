@@ -4,14 +4,124 @@
 <head>
     <meta charset="UTF-8">
     <title>Apply for Leave</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
+        /* ===== SIDEBAR STYLES ===== */
+        
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .sidebar .menu {
+            padding-top: 20px;
+        }
+        
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+            color: #2c3e50;
+            padding: 0 15px;
+        }
+        
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #555;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 15px;
+            border-radius: 6px;
+            margin: 5px 10px;
+        }
+        
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar a:hover {
+            background: #f0f0f0;
+        }
+        
+        .sidebar a.active {
+            background: #f0f0f0;
+            color: #3498db;
+            font-weight: 600;
+        }
+        
+        .sidebar .support {
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .submenu {
+            display: none;
+            flex-direction: column;
+            margin-left: 15px;
+            border-left: 2px solid #e0e0e0;
+            position: relative;
+            width: calc(100% - 30px);
+        }
+        
+        .submenu.active {
+            display: flex;
+        }
+        
+        .submenu a {
+            padding: 10px 15px;
+            margin: 2px 10px;
+            font-size: 14px;
+        }
+        
+        .submenu a i {
+            font-size: 12px;
+        }
+        
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        
+        .menu-toggle .arrow {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+        
+        .menu-toggle.active .arrow {
+            transform: rotate(180deg);
+        }
+        /* EXISTING STYLES */
+        
         body {
             font-family: Arial, sans-serif;
             background: #f9f9f9;
             margin: 0;
             padding: 0;
         }
-        /* ===== HEADER ===== */
+        /* ===== HEADER - ADD THIS BACK ===== */
         
         header {
             background: #fff;
@@ -26,32 +136,6 @@
             font-weight: bold;
             font-size: 16px;
             color: #111;
-        }
-        
-        header nav {
-            flex: 1;
-            text-align: right;
-            margin-right: 20px;
-        }
-        
-        header nav a {
-            margin: 0 10px;
-            text-decoration: none;
-            color: #444;
-            font-size: 14px;
-        }
-        
-        header nav a.active {
-            color: #4b6cb7;
-            font-weight: bold;
-        }
-        
-        header .profile {
-            font-size: 14px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
         /* ===== CONTAINER ===== */
         
@@ -183,102 +267,223 @@
             background: #4b6cb7;
             color: #fff;
         }
+        
+        #balanceInfo {
+            margin-top: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 3px 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: inline-block;
+        }
     </style>
 </head>
 
 <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="menu">
+            <h2>ALMS</h2>
+            <a href="dashboard.html">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
 
-    <!-- Header -->
-    <header>
-        <div class="logo">HR System</div>
-        <nav>
-            <a href="#">Dashboard</a>
-            <a href="#">Employees</a>
-            <a href="#">Attendance</a>
-            <a href="#">Holidays</a>
-            <a href="#" class="active">Leaves</a>
-            <a href="#">Reports</a>
-        </nav>
-        <div class="profile">
-            <img src="https://via.placeholder.com/20" alt="profile"> Profile
+            <!-- Employees - Admin Only -->
+            <a href="employee_list.html" id="empMgmtLink" style="display: none;">
+                <i class="fa-solid fa-users"></i> Employees
+            </a>
+
+            <a href="attendance.html">
+                <i class="fa-regular fa-clock"></i> Attendance
+            </a>
+
+            <a href="holidays.html">
+                <i class="fa-regular fa-calendar"></i> Holidays
+            </a>
+
+            <!-- Leaves with sub-menu -->
+            <a href="javascript:void(0)" id="leavesToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-bar"></i> Leaves
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="leavesSubmenu" class="submenu">
+                <a href="leave_applications.html">
+                    <i class="fa-regular fa-circle"></i> Leave Applications
+                </a>
+                <a href="leave_master.html">
+                    <i class="fa-regular fa-circle"></i> Leave Master
+                </a>
+            </div>
+
+            <!-- Reports with sub-menu - Admin Only -->
+            <a href="javascript:void(0)" id="reportsToggle" class="menu-toggle" style="display: none;">
+                <span>
+                    <i class="fa-solid fa-chart-pie"></i> Reports
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="reportsSubmenu" class="submenu">
+                <a href="reports.html">
+                    <i class="fa-regular fa-circle"></i> General Reports
+                </a>
+                <a href="attendance_report.html">
+                    <i class="fa-regular fa-circle"></i> Attendance Reports
+                </a>
+                <a href="leave_report.html">
+                    <i class="fa-regular fa-circle"></i> Leave Reports
+                </a>
+            </div>
+
+            <a href="#">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
         </div>
-    </header>
 
-    <!-- Container -->
-    <div class="container">
-        <h2>Apply for Leave</h2>
-        <p class="subtitle">Request time off from work.</p>
-
-        <div class="leave-balances">
-            <div class="card">
-                <h3>Casual Leave</h3>
-                <p id="casualLeave"></p>
-            </div>
-            <div class="card">
-                <h3>Earned Leave</h3>
-                <p id="earnedLeave"></p>
-            </div>
-            <div class="card">
-                <h3>Hospital Leave</h3>
-                <p id="hospitalLeave"></p>
-            </div>
+        <div class="support">
+            <a href="#">
+                <i class="fa-regular fa-circle-question"></i> Help & Support
+            </a>
         </div>
+    </div>
 
-        <form id="leaveForm">
-            <div class="form-row">
-                <div class="field">
-                    <label>Employee ID</label>
-                    <input type="text" id="employeeId" required>
-                </div>
-                <div class="field">
-                    <label>Leave Type</label>
-                    <select id="leaveType" required>
-  <option value="">Select a leave type</option>
-  <option value="Casual Leave">Casual Leave</option>
-  <option value="Earned Leave">Earned Leave</option>
-  <option value="Hospital Leave">Hospital Leave</option>
-</select>
+    <div class="main-content">
+        <!-- ADD BACK THE HEADER SECTION -->
+        <header>
+            <div class="logo">ALMS</div>
+        </header>
 
-                </div>
-            </div>
+        <!-- Container -->
+        <div class="container">
+            <h2>Apply for Leave</h2>
+            <p class="subtitle">Request time off from work.</p>
 
-            <div class="form-row">
-                <div class="field">
-                    <label>Start Date</label>
-                    <input type="date" id="start_date" required>
+            <div class="leave-balances">
+                <div class="card">
+                    <h3>Casual Leave</h3>
+                    <p id="casualLeave"></p>
                 </div>
-                <div class="field">
-                    <label>End Date</label>
-                    <input type="date" id="end_date" required>
+                <div class="card">
+                    <h3>Earned Leave</h3>
+                    <p id="earnedLeave"></p>
+                </div>
+                <div class="card">
+                    <h3>Hospital Leave</h3>
+                    <p id="hospitalLeave"></p>
                 </div>
             </div>
 
-            <label>Number of Days</label>
-            <input type="number" id="numDays" required>
+            <form id="leaveForm">
+                <div class="form-row">
+                    <div class="field">
+                        <label>Employee ID</label>
+                        <input type="text" id="employeeId" required>
+                    </div>
+                    <div class="field">
+                        <label>Leave Type</label>
+                        <select id="leaveType" required>
+      <option value="">Select a leave type</option>
+      <option value="Casual Leave">Casual Leave</option>
+      <option value="Earned Leave">Earned Leave</option>
+      <option value="Hospital Leave">Hospital Leave</option>
+    </select>
 
-            <label>Reason for Leave</label>
-            <textarea id="reason" placeholder="Please provide a brief reason for your leave request." required></textarea>
-
-            <!-- Checkbox + Status under it -->
-            <div class="extra-options">
-                <input type="checkbox" id="awayFromHQ" style="margin-left: 6px;">
-                <label for="awayFromHQ">During Leave Away from HQ</label>
-
-                <div style="margin-top: 12px;">
-                    <label>Status</label>
-                    <div class="status-box">Pending Approval</div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Buttons -->
-            <div class="buttons">
-                <button type="button" class="cancel" onclick="window.location.href='leave_applications.html'">Cancel</button>
-                <button type="submit" class="submit">Submit Request</button>
-            </div>
-        </form>
+                <div class="form-row">
+                    <div class="field">
+                        <label>Start Date</label>
+                        <input type="date" id="start_date" required>
+                    </div>
+                    <div class="field">
+                        <label>End Date</label>
+                        <input type="date" id="end_date" required>
+                    </div>
+                </div>
+
+                <label>Number of Days</label>
+                <input type="number" id="numDays" required>
+
+                <label>Reason for Leave</label>
+                <textarea id="reason" placeholder="Please provide a brief reason for your leave request." required></textarea>
+
+                <!-- Checkbox + Status under it -->
+                <div class="extra-options">
+                    <input type="checkbox" id="awayFromHQ" style="margin-left: 6px;">
+                    <label for="awayFromHQ">During Leave Away from HQ</label>
+
+                    <div style="margin-top: 12px;">
+                        <label>Status</label>
+                        <div class="status-box">Pending Approval</div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="buttons">
+                    <button type="button" class="cancel" onclick="window.location.href='leave_applications.html'">Cancel</button>
+                    <button type="submit" class="submit">Submit Request</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const role = localStorage.getItem("role") || "employee";
+
+            // Role-based access control
+            const adminOnlyElements = [
+                'empMgmtLink',
+                'reportsToggle'
+            ];
+
+            adminOnlyElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = role === "admin" ? "flex" : "none";
+                }
+            });
+
+            // Submenu toggle functionality
+            const leavesToggle = document.getElementById("leavesToggle");
+            const leavesSubmenu = document.getElementById("leavesSubmenu");
+
+            if (leavesToggle && leavesSubmenu) {
+                leavesToggle.addEventListener('click', () => {
+                    leavesToggle.classList.toggle('active');
+                    leavesSubmenu.classList.toggle('active');
+                });
+            }
+
+            const reportsToggle = document.getElementById("reportsToggle");
+            const reportsSubmenu = document.getElementById("reportsSubmenu");
+
+            if (reportsToggle && reportsSubmenu) {
+                reportsToggle.addEventListener('click', () => {
+                    reportsToggle.classList.toggle('active');
+                    reportsSubmenu.classList.toggle('active');
+                });
+            }
+
+            // Set active page highlighting
+            const currentPage = window.location.pathname.split("/").pop();
+            const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage || (currentPage === '' && href === 'dashboard.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+
+        // EXISTING SCRIPT
         // Automatically calculate number of days
         const startInput = document.getElementById("start_date");
         const endInput = document.getElementById("end_date");
@@ -299,83 +504,183 @@
         startInput.addEventListener("change", calculateDays);
         endInput.addEventListener("change", calculateDays);
 
-<<<<<<< HEAD
-        // Update your form submission in apply_leave.html
-=======
-        // Form submission
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-        document.getElementById("leaveForm").addEventListener("submit", function(e) {
+        // Enhanced Form submission with proper leave balance validation
+        document.getElementById("leaveForm").addEventListener("submit", async function(e) {
             e.preventDefault();
 
-            const EmpId = document.getElementById("employeeId").value;
-            const leave_type_id = document.getElementById("leaveType").value;
+            const EmpId = document.getElementById("employeeId").value.trim();
+            const leave_type = document.getElementById("leaveType").value;
             const start_date = document.getElementById("start_date").value;
             const end_date = document.getElementById("end_date").value;
-            const number_of_days = document.getElementById("numDays").value;
+            const number_of_days = parseInt(document.getElementById("numDays").value);
             const reason = document.getElementById("reason").value;
             const away_from_hq = document.getElementById("awayFromHQ").checked;
 
-<<<<<<< HEAD
-            console.log("📤 Sending data:", {
-                EmpId,
-                leave_type_id,
-                start_date,
-                end_date,
-                number_of_days,
-                reason,
-                away_from_hq
-            });
-
-=======
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-            if (!EmpId || !leave_type_id || !start_date || !end_date || !number_of_days || !reason) {
+            // Validation
+            if (!EmpId || !leave_type || !start_date || !end_date || !number_of_days || !reason) {
                 return alert("Please fill all required fields.");
             }
 
-<<<<<<< HEAD
-            fetch("http://localhost:3000/api/leaves", {
-=======
-            fetch("http://localhost:3000/api/leaves", { // <-- fixed URL for backend
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
+            if (number_of_days <= 0) {
+                return alert("Number of days must be greater than 0.");
+            }
+
+            try {
+                // Step 1: Check available leave balance
+                const leaveCodeMap = {
+                    'Casual Leave': 'CL',
+                    'Earned Leave': 'EL',
+                    'Hospital Leave': 'HL'
+                };
+
+                const leave_code = leaveCodeMap[leave_type];
+
+                console.log(`Checking balance for ${EmpId}, leave type: ${leave_code}`);
+
+                const balanceResponse = await fetch(`http://localhost:3000/api/employee-leave-balance?empId=${EmpId}`);
+                const balanceData = await balanceResponse.json();
+
+                if (!balanceResponse.ok) {
+                    throw new Error('Failed to check leave balance');
+                }
+
+                // Find the specific leave type balance
+                const leaveBalance = balanceData.find(leave => leave.leave_code === leave_code);
+
+                if (!leaveBalance) {
+                    return alert(`No leave balance available for ${leave_type}. Please contact HR.`);
+                }
+
+                const availableBalance = parseFloat(leaveBalance.available_balance);
+
+                console.log(`Available balance: ${availableBalance}, Requested days: ${number_of_days}`);
+
+                if (availableBalance <= 0) {
+                    return alert(`No ${leave_type} balance available. Available: ${availableBalance} days`);
+                }
+
+                if (number_of_days > availableBalance) {
+                    return alert(`Insufficient ${leave_type} balance. Available: ${availableBalance} days, Requested: ${number_of_days} days`);
+                }
+
+                // Step 2: If balance is sufficient, apply for leave
+                console.log("Balance sufficient, applying for leave...");
+
+                const leaveResponse = await fetch("http://localhost:3000/api/leaves", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        EmpId,
-                        leave_type_id,
-                        start_date,
-                        end_date,
-                        number_of_days,
-                        reason,
-                        away_from_hq
+                        EmpId: EmpId,
+                        leave_type_id: leave_type,
+                        start_date: start_date,
+                        end_date: end_date,
+                        number_of_days: number_of_days,
+                        reason: reason,
+                        away_from_hq: away_from_hq
                     })
-                })
-<<<<<<< HEAD
-                .then(res => {
-                    console.log("📥 Response status:", res.status);
-                    return res.json();
-                })
-                .then(data => {
-                    console.log("📥 Response data:", data);
-=======
-                .then(res => res.json())
-                .then(data => {
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-                    alert(data.message);
-                    if (data.message === "Leave applied successfully") {
-                        window.location.href = "leave_applications.html";
-                    }
-                })
-<<<<<<< HEAD
-                .catch(err => {
-                    console.error("❌ Fetch error:", err);
-                    alert("Error applying leave: " + err.message);
                 });
-=======
-                .catch(err => console.error(err));
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
+
+                const result = await leaveResponse.json();
+
+                if (!leaveResponse.ok) {
+                    throw new Error(result.message || "Failed to apply leave");
+                }
+
+                alert("Leave applied successfully! Waiting for approval.");
+                window.location.href = "leave_applications.html";
+
+            } catch (err) {
+                console.error("❌ Error applying leave:", err);
+                alert("Error: " + err.message);
+            }
         });
+        // Auto-load employee ID and leave balances
+        document.addEventListener("DOMContentLoaded", function() {
+            const empId = localStorage.getItem("EmpId");
+            if (empId) {
+                document.getElementById("employeeId").value = empId;
+                loadCurrentLeaveBalances(empId);
+            }
+        });
+
+        // Load current leave balances for the employee
+        async function loadCurrentLeaveBalances(empId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/employee-leave-balance?empId=${empId}`);
+                const balanceData = await response.json();
+
+                if (response.ok && balanceData.length > 0) {
+                    balanceData.forEach(leave => {
+                        const elementId = getLeaveElementId(leave.leave_code);
+                        if (elementId) {
+                            document.getElementById(elementId).textContent = leave.available_balance;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error loading leave balances:", error);
+            }
+        }
+
+        // Helper function to map leave codes to element IDs
+        function getLeaveElementId(leaveCode) {
+            const mapping = {
+                'CL': 'casualLeave',
+                'EL': 'earnedLeave',
+                'HL': 'hospitalLeave'
+            };
+            return mapping[leaveCode];
+        }
+
+        // Update balance display when leave type changes
+        document.getElementById("leaveType").addEventListener("change", function() {
+            const empId = document.getElementById("employeeId").value.trim();
+            if (empId) {
+                updateSelectedLeaveBalance(empId, this.value);
+            }
+        });
+
+        async function updateSelectedLeaveBalance(empId, leaveType) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/employee-leave-balance?empId=${empId}`);
+                const balanceData = await response.json();
+
+                if (response.ok && balanceData.length > 0) {
+                    const leaveCodeMap = {
+                        'Casual Leave': 'CL',
+                        'Earned Leave': 'EL',
+                        'Hospital Leave': 'HL'
+                    };
+
+                    const leaveCode = leaveCodeMap[leaveType];
+                    const leaveBalance = balanceData.find(leave => leave.leave_code === leaveCode);
+
+                    if (leaveBalance) {
+                        // Show available balance near the leave type dropdown
+                        const balanceInfo = document.getElementById('balanceInfo') || createBalanceInfoElement();
+                        balanceInfo.textContent = `Available: ${leaveBalance.available_balance} days`;
+                        balanceInfo.style.color = leaveBalance.available_balance > 0 ? 'green' : 'red';
+                    }
+                }
+            } catch (error) {
+                console.error("Error updating leave balance:", error);
+            }
+        }
+
+        function createBalanceInfoElement() {
+            const balanceInfo = document.createElement('div');
+            balanceInfo.id = 'balanceInfo';
+            balanceInfo.style.marginTop = '5px';
+            balanceInfo.style.fontSize = '12px';
+            balanceInfo.style.fontWeight = 'bold';
+
+            const leaveTypeField = document.getElementById("leaveType").parentNode;
+            leaveTypeField.appendChild(balanceInfo);
+
+            return balanceInfo;
+        }
     </script>
 
 </body>

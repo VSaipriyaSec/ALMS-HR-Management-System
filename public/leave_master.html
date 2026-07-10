@@ -6,12 +6,120 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Leave Master - HRMS</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-<<<<<<< HEAD
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-=======
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
     <style>
+        /* ===== SIDEBAR STYLES ===== */
+        
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .sidebar .menu {
+            padding-top: 20px;
+            flex: 1;
+        }
+        
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+            color: #2c3e50;
+            padding: 0 15px;
+        }
+        
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #555;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 15px;
+            border-radius: 6px;
+            margin: 5px 10px;
+        }
+        
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar a:hover {
+            background: #f0f0f0;
+        }
+        
+        .sidebar a.active {
+            background: #f0f0f0;
+            color: #3498db;
+            font-weight: 600;
+        }
+        
+        .sidebar .support {
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .submenu {
+            display: none;
+            flex-direction: column;
+            margin-left: 15px;
+            border-left: 2px solid #e0e0e0;
+            position: relative;
+            width: calc(100% - 30px);
+        }
+        
+        .submenu.active {
+            display: flex;
+        }
+        
+        .submenu a {
+            padding: 10px 15px;
+            margin: 2px 10px;
+            font-size: 14px;
+        }
+        
+        .submenu a i {
+            font-size: 12px;
+        }
+        
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .menu-toggle .arrow {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+        
+        .menu-toggle.active .arrow {
+            transform: rotate(180deg);
+        }
+        /* EXISTING STYLES */
+        
          :root {
             --bg: #f6f7f9;
             --card: #ffffff;
@@ -43,11 +151,12 @@
             padding: 22px 28px;
             border: 1px solid #e6e9ec;
         }
+        /* KEEP ONLY THE BRAND HEADER */
         
         .top {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 18px;
         }
         
@@ -62,44 +171,6 @@
             font-weight: 700;
             color: var(--text);
             margin-right: 20px;
-        }
-        
-        nav {
-            display: flex;
-            gap: 18px;
-            align-items: center;
-            font-size: 14px;
-            color: var(--muted)
-        }
-        
-        nav a {
-            color: var(--muted);
-            text-decoration: none
-        }
-        
-        nav a.active {
-            color: var(--text);
-            font-weight: 700
-        }
-        
-        .profile {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-        
-        .bell {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-        
-        .profile-pic {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1px solid #ddd;
         }
         
         .title-row {
@@ -179,20 +250,13 @@
         .leave-desc {
             color: #7b8791
         }
-<<<<<<< HEAD
         
         .add-leave-btn {
-=======
-        .add-leave-btn{
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
             background: #007bff;
             color: #fff;
             padding: 10px;
             border-radius: 8px;
-<<<<<<< HEAD
             text-decoration: none;
-=======
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
         }
         
         .balance {
@@ -205,7 +269,6 @@
             text-decoration: none
         }
         
-<<<<<<< HEAD
         .edit-link {
             display: inline-flex;
             align-items: center;
@@ -227,8 +290,6 @@
             padding: 2px 12px;
         }
         
-=======
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
         .paper .spacer {
             height: 260px
         }
@@ -242,75 +303,163 @@
 </head>
 
 <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="menu">
+            <h2>ALMS</h2>
+            <a href="dashboard.html">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
 
-    <div class="paper" role="main">
-        <div class="top">
-            <div class="brand">
-                <div class="logo-text">HR System</div>
+            <!-- Employees - Admin Only -->
+            <a href="employee_list.html" id="empMgmtLink" style="display: none;">
+                <i class="fa-solid fa-users"></i> Employees
+            </a>
+
+            <a href="attendance.html">
+                <i class="fa-regular fa-clock"></i> Attendance
+            </a>
+
+            <a href="holidays.html">
+                <i class="fa-regular fa-calendar"></i> Holidays
+            </a>
+
+            <!-- Leaves with sub-menu -->
+            <a href="javascript:void(0)" id="leavesToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-bar"></i> Leaves
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="leavesSubmenu" class="submenu">
+                <a href="leave_applications.html">
+                    <i class="fa-regular fa-circle"></i> Leave Applications
+                </a>
+                <a href="leave_master.html" class="active">
+                    <i class="fa-regular fa-circle"></i> Leave Master
+                </a>
             </div>
-            <div class="profile">
-                <nav aria-label="Main">
-                    <nav aria-label="Main">
-                        <a href="dashboard.html">Dashboard</a>
-                        <a href="employees.html">Employees</a>
-                        <a href="attendance.html">Attendance</a>
-                        <a href="holidays.html">Holidays</a>
-                        <a href="leaves.html">Leaves</a>
-                        <a href="adjust_leave_balance.html" id="adjustLeaveLink">Adjust Leave Balance</a>
-                        <a href="reports.html">Reports</a>
-                    </nav>
 
-
-                </nav>
-                <img src="https://cdn-icons-png.flaticon.com/512/1827/1827392.png" alt="Notifications" class="bell" />
-                <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Profile" class="profile-pic" />
+            <!-- Reports with sub-menu - Admin Only -->
+            <a href="javascript:void(0)" id="reportsToggle" class="menu-toggle" style="display: none;">
+                <span>
+                    <i class="fa-solid fa-chart-pie"></i> Reports
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="reportsSubmenu" class="submenu">
+                <a href="reports.html">
+                    <i class="fa-regular fa-circle"></i> General Reports
+                </a>
+                <a href="attendance_report.html">
+                    <i class="fa-regular fa-circle"></i> Attendance Reports
+                </a>
+                <a href="leave_report.html">
+                    <i class="fa-regular fa-circle"></i> Leave Reports
+                </a>
             </div>
+
+            <a href="#">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
         </div>
 
-        <div class="title-row">
-            <h2>Leave Master</h2>
-<<<<<<< HEAD
-            <a href="adjust_leave_balance.html" class="add-leave-btn" id="addLeaveBtn"> <span style="font-size: larger;">&#43;</span> Add Leave Balance</a>
-=======
-            <a href="adjust_leave_balance.html" class="add-leave-btn" id="addLeaveBtn">Add Leave Balance</a>
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-
+        <div class="support">
+            <a href="#">
+                <i class="fa-regular fa-circle-question"></i> Help & Support
+            </a>
         </div>
-
-        <div class="table-wrap">
-            <table aria-describedby="leave-table">
-                <thead>
-                    <tr>
-                        <th style="width:16%">EMPLOYEE ID</th>
-                        <th style="width:24%">LEAVE TYPE</th>
-                        <th style="width:46%">LEAVE DESCRIPTION</th>
-                        <th style="width:8%;text-align:right">BALANCE</th>
-                        <th style="width:8%;text-align:center">EDIT</th>
-                    </tr>
-                </thead>
-                <tbody id="leaveTableBody">
-                    <!-- Leave rows populated dynamically -->
-                </tbody>
-            </table>
-        </div>
-
-        <div class="spacer"></div>
     </div>
 
-<<<<<<< HEAD
-    <script>
-        // Highlight active page in top navigation
-        const navLinks = document.querySelectorAll('.top nav a');
-        const currentPage = window.location.pathname.split("/").pop();
+    <div class="main-content">
+        <div class="paper" role="main">
+            <!-- KEEP ONLY THE BRAND HEADER -->
+            <div class="top">
+                <div class="brand">
+                    <div class="logo-text">ALMS</div>
+                </div>
+            </div>
 
-        navLinks.forEach(link => {
-            if (link.getAttribute('href') === currentPage) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
+            <div class="title-row">
+                <h2>Leave Master</h2>
+                <a href="adjust_leave_balance.html" class="add-leave-btn" id="addLeaveBtn"> <span style="font-size: larger;">&#43;</span> Add Leave Balance</a>
+            </div>
+
+            <div class="table-wrap">
+                <table aria-describedby="leave-table">
+                    <thead>
+                        <tr>
+                            <th style="width:16%">EMPLOYEE ID</th>
+                            <th style="width:24%">LEAVE TYPE</th>
+                            <th style="width:46%">LEAVE DESCRIPTION</th>
+                            <th style="width:8%;text-align:right">BALANCE</th>
+                            <th style="width:8%;text-align:center">EDIT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaveTableBody">
+                        <!-- Leave rows populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="spacer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const role = localStorage.getItem("role") || "employee";
+
+            // Role-based access control
+            const adminOnlyElements = [
+                'empMgmtLink',
+                'reportsToggle'
+            ];
+
+            adminOnlyElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = role === "admin" ? "flex" : "none";
+                }
+            });
+
+            // Submenu toggle functionality
+            const leavesToggle = document.getElementById("leavesToggle");
+            const leavesSubmenu = document.getElementById("leavesSubmenu");
+
+            if (leavesToggle && leavesSubmenu) {
+                leavesToggle.addEventListener('click', () => {
+                    leavesToggle.classList.toggle('active');
+                    leavesSubmenu.classList.toggle('active');
+                });
             }
+
+            const reportsToggle = document.getElementById("reportsToggle");
+            const reportsSubmenu = document.getElementById("reportsSubmenu");
+
+            if (reportsToggle && reportsSubmenu) {
+                reportsToggle.addEventListener('click', () => {
+                    reportsToggle.classList.toggle('active');
+                    reportsSubmenu.classList.toggle('active');
+                });
+            }
+
+            // Set active page highlighting
+            const currentPage = window.location.pathname.split("/").pop();
+            const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage || (currentPage === '' && href === 'dashboard.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
         });
 
+        // EXISTING SCRIPT
         const role = localStorage.getItem("role") || "employee";
         const empId = (localStorage.getItem("EmpId") || '').trim();
         const tableBody = document.getElementById("leaveTableBody");
@@ -357,81 +506,14 @@
                             hasData = true;
                             const row = document.createElement('tr');
                             row.innerHTML = `
-=======
-<script>
-    // Highlight active page in top navigation
-    const navLinks = document.querySelectorAll('.top nav a');
-    const currentPage = window.location.pathname.split("/").pop();
-
-    navLinks.forEach(link => {
-        if (link.getAttribute('href') === currentPage) {
-            link.classList.add('active');
-        } else {
-            link.classList.remove('active');
-        }
-    });
-
-    const role = localStorage.getItem("role") || "employee";
-    const empId = (localStorage.getItem("EmpId") || '').trim();
-    const tableBody = document.getElementById("leaveTableBody");
-
-    // Leave code → name mapping
-    const leaveNameMap = {
-        'CL': 'Casual Leave',
-        'EL': 'Earned Leave',
-        'HL': 'Hospital Leave',
-        'ML': 'Maternity Leave',
-        'PL': 'Paternity Leave',
-        'SL': 'Sick Leave',
-        'VL': 'Vacation Leave'
-    };
-
-    // Fetch leave master list
-    async function refreshLeaveTable() {
-        try {
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#666;">Loading leave data...</td></tr>';
-
-            const response = await fetch(`/api/leave_master?role=${role}&EmpId=${empId}`);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-            const data = await response.json();
-            renderTable(data);
-        } catch (err) {
-            console.error('Error fetching leave master:', err);
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:red;">Failed to load leave data. Please check if server is running.</td></tr>';
-        }
-    }
-
-    // Render table
-    function renderTable(data) {
-        tableBody.innerHTML = '';
-
-        if (!data || data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#666;">No leave data available</td></tr>';
-            return;
-        }
-
-        let hasData = false;
-        data.forEach(leave => {
-            if (role === 'admin' || (leave.EmpId || '').trim() === empId) {
-                hasData = true;
-                const row = document.createElement('tr');
-                row.innerHTML = `
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
                     <td>${leave.EmpId || 'N/A'}</td>
                     <td>${leave.leave_name || leaveNameMap[leave.leave_code] || leave.leave_code}</td>
                     <td>${leave.leave_desc || 'No description'}</td>
                     <td>${leave.balance ?? 0}</td>
                     <td>${role === 'admin'
-<<<<<<< HEAD
     ? `<a href="adjust_leave_balance.html?empId=${encodeURIComponent(leave.EmpId)}&type=${encodeURIComponent(leave.leave_code)}" class="edit-link"><i class='fas fa-pencil-alt'></i> Edit</a>`
     : '-'}</td>
     `;
-=======
-                        ? `<a href="adjust_leave_balance.html?empId=${encodeURIComponent(leave.EmpId)}&type=${encodeURIComponent(leave.leave_code)}">Edit</a>`
-                        : '-'}</td>
-                `;
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
                 tableBody.appendChild(row);
             }
         });
@@ -478,11 +560,7 @@
             refreshLeaveTable();
         }
     });
-<<<<<<< HEAD
     </script>
-=======
-</script>
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
 
 </body>
 

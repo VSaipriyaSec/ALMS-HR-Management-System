@@ -7,6 +7,114 @@
     <title>Add New Employee</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        /* ===== SIDEBAR STYLES ===== */
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar .menu {
+            padding-top: 20px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+            color: #2c3e50;
+            padding: 0 15px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #555;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 15px;
+            border-radius: 6px;
+            margin: 5px 10px;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar a:hover {
+            background: #f0f0f0;
+        }
+
+        .sidebar a.active {
+            background: #f0f0f0;
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .sidebar .support {
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .submenu {
+            display: none;
+            flex-direction: column;
+            margin-left: 15px;
+            border-left: 2px solid #e0e0e0;
+            position: relative;
+            width: calc(100% - 30px);
+        }
+
+        .submenu.active {
+            display: flex;
+        }
+
+        .submenu a {
+            padding: 10px 15px;
+            margin: 2px 10px;
+            font-size: 14px;
+        }
+
+        .submenu a i {
+            font-size: 12px;
+        }
+
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .menu-toggle .arrow {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+
+        .menu-toggle.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* EXISTING STYLES */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -120,92 +228,291 @@
         }
     </script>
 
-    <div class="container">
-        <h2>Add New Employee</h2>
-        <p>Enter the employee's details below.</p>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="menu">
+            <h2>ALMS</h2>
+            <a href="dashboard.html">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+            
+            <!-- Employees - Admin Only -->
+            <a href="employee_list.html" id="empMgmtLink">
+                <i class="fa-solid fa-users"></i> Employees
+            </a>
+            
+            <a href="attendance.html">
+                <i class="fa-regular fa-clock"></i> Attendance
+            </a>
+            
+            <a href="holidays.html">
+                <i class="fa-regular fa-calendar"></i> Holidays
+            </a>
 
-        <form id="addEmployeeForm">
-            <div class="form-grid">
-                <div class="form-group full-width">
-                    <label for="fullname">Full Name</label>
-                    <input type="text" id="fullname" placeholder="e.g., John Doe" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="empid">Employee ID</label>
-                    <input type="text" id="empid" placeholder="e.g., EMP12345" required>
-                </div>
-                <div class="form-group">
-                    <label for="dob">Date of Birth</label>
-                    <input type="date" id="dob" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="doj">Date of Joining</label>
-                    <input type="date" id="doj" required>
-                </div>
-                <div class="form-group">
-                    <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" placeholder="e.g., (123) 456-7890">
-                </div>
-
-                <div class="form-group full-width">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="e.g., john.doe@example.com">
-                </div>
-
-                <div class="form-group full-width">
-                    <label for="address">Address</label>
-                    <textarea id="address" rows="2" placeholder="123 Main St, Any town, USA"></textarea>
-                </div>
+            <!-- Leaves with sub-menu -->
+            <a href="javascript:void(0)" id="leavesToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-bar"></i> Leaves
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="leavesSubmenu" class="submenu">
+                <a href="leave_applications.html">
+                    <i class="fa-regular fa-circle"></i> Leave Applications
+                </a>
+                <a href="leave_master.html">
+                    <i class="fa-regular fa-circle"></i> Leave Master
+                </a>
             </div>
 
-            <h3>Position Details</h3>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="department">Department</label>
-                    <select id="department" required>
-            <option value="">Select department</option>
-            <option>HR</option>
-            <option>Finance</option>
-            <option>IT</option>
-            <option>Operations</option>
-          </select>
+            <!-- Reports with sub-menu - Admin Only -->
+            <a href="javascript:void(0)" id="reportsToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-pie"></i> Reports
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="reportsSubmenu" class="submenu">
+                <a href="reports.html">
+                    <i class="fa-regular fa-circle"></i> General Reports
+                </a>
+                <a href="attendance_report.html">
+                    <i class="fa-regular fa-circle"></i> Attendance Reports
+                </a>
+                <a href="leave_report.html">
+                    <i class="fa-regular fa-circle"></i> Leave Reports
+                </a>
+            </div>
+
+            <a href="#">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
+        </div>
+        
+        <div class="support">
+            <a href="#">
+                <i class="fa-regular fa-circle-question"></i> Help & Support
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- EXISTING CONTENT -->
+        <div class="container">
+            <h2>Add New Employee</h2>
+            <p>Enter the employee's details below.</p>
+
+            <form id="addEmployeeForm" novalidate>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="fullname">Full Name</label>
+                        <input type="text" id="fullname" placeholder="e.g., John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="empid">Employee ID</label>
+                        <input type="text" id="empid" placeholder="e.g., EMP12345" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dob">Date of Birth</label>
+                        <input type="date" id="dob" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doj">Date of Joining</label>
+                        <input type="date" id="doj" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" placeholder="e.g., (123) 456-7890">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="e.g., john.doe@example.com">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="address">Address</label>
+                        <textarea id="address" rows="2" placeholder="123 Main St, Any town, USA"></textarea>
+                    </div>
+                </div>
+
+                <h3>Position Details</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <select id="department" required>
+                <option value="">Select department</option>
+                <option>HR</option>
+                <option>Finance</option>
+                <option>IT</option>
+                <option>Operations</option>
+              </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="designation">Designation</label>
+                        <select id="designation" required>
+                <option value="">Select designation</option>
+                <option>Manager</option>
+                <option>Executive</option>
+                <option>Intern</option>
+              </select>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="designation">Designation</label>
-                    <select id="designation" required>
-            <option value="">Select designation</option>
-            <option>Manager</option>
-            <option>Executive</option>
-            <option>Intern</option>
-          </select>
+                    <label>Employee Type</label>
+                    <div class="employee-type">
+                        <label><input type="radio" name="type" value="Permanent" checked> Permanent</label>
+                        <label><input type="radio" name="type" value="Contract"> Contract</label>
+                        <label><input type="radio" name="type" value="Intern"> Intern</label>
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label>Employee Type</label>
-                <div class="employee-type">
-                    <label><input type="radio" name="type" value="Permanent" checked> Permanent</label>
-                    <label><input type="radio" name="type" value="Contract"> Contract</label>
-                    <label><input type="radio" name="type" value="Intern"> Intern</label>
+                <div class="buttons">
+                    <button type="button" class="btn cancel">Cancel</button>
+                    <button type="submit" class="btn submit">Add Employee</button>
                 </div>
-            </div>
-
-            <div class="buttons">
-                <button type="button" class="btn cancel">Cancel</button>
-                <button type="submit" class="btn submit">Add Employee</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 
     <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set active page highlighting
+            const currentPage = window.location.pathname.split("/").pop();
+            const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
+            
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage || (currentPage === '' && href === 'dashboard.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Submenu toggle functionality
+            const leavesToggle = document.getElementById("leavesToggle");
+            const leavesSubmenu = document.getElementById("leavesSubmenu");
+            
+            if (leavesToggle && leavesSubmenu) {
+                leavesToggle.addEventListener('click', () => {
+                    leavesToggle.classList.toggle('active');
+                    leavesSubmenu.classList.toggle('active');
+                });
+            }
+
+            const reportsToggle = document.getElementById("reportsToggle");
+            const reportsSubmenu = document.getElementById("reportsSubmenu");
+            
+            if (reportsToggle && reportsSubmenu) {
+                reportsToggle.addEventListener('click', () => {
+                    reportsToggle.classList.toggle('active');
+                    reportsSubmenu.classList.toggle('active');
+                });
+            }
+        });
+
+        // EXISTING SCRIPT
         const form = document.getElementById("addEmployeeForm");
+        const todayStr = new Date().toISOString().split("T")[0];
+        const dobInput = document.getElementById("dob");
+        const dojInput = document.getElementById("doj");
+
+        // Prevent future dates being picked at all
+        dobInput.max = todayStr;
+        dojInput.max = todayStr;
+
+        // Helper: calculate completed age (in years) as of a given date
+        function calculateAge(birthDateStr, onDateStr) {
+            const birth = new Date(birthDateStr);
+            const on = new Date(onDateStr);
+            let age = on.getFullYear() - birth.getFullYear();
+            const monthDiff = on.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && on.getDate() < birth.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // DOB - validate the moment the user finishes picking/typing and moves to next field
+        dobInput.addEventListener("change", function () {
+            if (!this.value) return;
+
+            const dobDate = new Date(this.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (dobDate > today) {
+                alert("Date of Birth cannot be in the future.");
+                this.value = "";
+                return;
+            }
+
+            if (calculateAge(this.value, todayStr) < 21) {
+                alert("Employee must be at least 21 years old. Enter a valid Date of Birth.");
+                this.value = "";
+                return;
+            }
+
+            // If DOJ was already filled, re-validate it against the new DOB
+            if (dojInput.value) {
+                dojInput.dispatchEvent(new Event("change"));
+            }
+        });
+
+        // DOJ - validate the moment the user finishes picking/typing and moves to next field
+        dojInput.addEventListener("change", function () {
+            if (!this.value) return;
+
+            if (!dobInput.value) {
+                alert("Please enter Date of Birth first.");
+                this.value = "";
+                return;
+            }
+
+            const dobDate = new Date(dobInput.value);
+            const dojDate = new Date(this.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (dojDate > today) {
+                alert("Date of Joining cannot be in the future.");
+                this.value = "";
+                return;
+            }
+
+            if (dojDate < dobDate) {
+                alert("Joining Date cannot be before Date of Birth.");
+                this.value = "";
+                return;
+            }
+
+            if (calculateAge(dobInput.value, this.value) < 21) {
+                alert("Date of Joining must be on or after the employee turned 21 years old.");
+                this.value = "";
+                return;
+            }
+        });
+
+        // Phone - only digits, max 10
+        document.getElementById("phone").addEventListener("input", function () {
+            this.value = this.value.replace(/\D/g, "").slice(0, 10);
+        });
+
+        // Name - letters and spaces only
+        document.getElementById("fullname").addEventListener("input", function () {
+            this.value = this.value.replace(/[^a-zA-Z ]/g, "");
+        });
+
         const cancelBtn = document.querySelector(".btn.cancel");
 
         // Cancel button - go back to previous page
-        cancelBtn.addEventListener("click", function() {
+        cancelBtn.addEventListener("click", function () {
             if (window.history.length > 1) {
                 window.history.back();
             } else {
@@ -214,16 +521,83 @@
         });
 
         // Submit form
-        form.addEventListener("submit", function(e) {
+        form.addEventListener("submit", function (e) {
             e.preventDefault();
 
-            // Basic validation
-            const requiredFields = ["fullname", "empid", "dob", "doj", "department", "designation"];
-            for (let id of requiredFields) {
-                if (!document.getElementById(id).value.trim()) {
-                    alert("Please fill all required fields.");
-                    return;
-                }
+            const fullname = document.getElementById("fullname").value.trim();
+            const empid = document.getElementById("empid").value.trim();
+            const dob = document.getElementById("dob").value;
+            const doj = document.getElementById("doj").value;
+            const phone = document.getElementById("phone").value.trim();
+            const email = document.getElementById("email").value.trim();
+
+            // Required fields
+            if (!fullname || !empid || !dob || !doj ||
+                !document.getElementById("department").value ||
+                !document.getElementById("designation").value) {
+                alert("Please fill all required fields.");
+                return;
+            }
+
+            // Name - letters and spaces only
+            if (!/^[A-Za-z ]+$/.test(fullname)) {
+                alert("Name should contain only alphabets.");
+                return;
+            }
+
+            // Employee ID - letters and numbers only
+            if (!/^[A-Za-z0-9]+$/.test(empid)) {
+                alert("Invalid Employee ID.");
+                return;
+            }
+
+            // Phone - exactly 10 digits
+            if (!/^[0-9]{10}$/.test(phone)) {
+                alert("Phone number must contain exactly 10 digits.");
+                return;
+            }
+
+            // Email - Gmail-style strict rules:
+            // local part: letters/numbers with single dots/underscore/plus/hyphen allowed in between
+            // (no leading/trailing/consecutive dot), domain must end with a valid TLD
+            const emailPattern = /^[a-zA-Z0-9]+([._%+-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$/;
+            if (!emailPattern.test(email)) {
+                alert("Enter a valid email address (e.g., name@example.com).");
+                return;
+            }
+
+            // Dates
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const dobDate = new Date(dob);
+            const dojDate = new Date(doj);
+
+            if (dobDate > today) {
+                alert("Date of Birth cannot be in the future.");
+                return;
+            }
+
+            if (dojDate > today) {
+                alert("Date of Joining cannot be in the future.");
+                return;
+            }
+
+            if (dojDate < dobDate) {
+                alert("Joining Date cannot be before Date of Birth.");
+                return;
+            }
+
+            // Age check - employee must be at least 21 years old today
+            if (calculateAge(dob, todayStr) < 21) {
+                alert("Employee must be at least 21 years old.");
+                return;
+            }
+
+            // Age-at-joining check - DOJ must be on/after the date they turned 21
+            if (calculateAge(dob, doj) < 21) {
+                alert("Date of Joining must be on or after the employee turned 21 years old.");
+                return;
             }
 
             // Get the checked radio button safely
@@ -266,7 +640,7 @@
                             window.close(); // Close the popup after success
                         } else {
                             // Redirect to employees page if not a popup
-                            window.location.href = "employees.html";
+                            window.location.href = "employee_list.html";
                         }
                     } else {
                         alert("Error: " + (data.error || "Unknown error occurred"));

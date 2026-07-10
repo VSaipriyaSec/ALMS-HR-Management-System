@@ -5,18 +5,128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adjust Leave Balance</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
+        /* ===== SIDEBAR STYLES ===== */
+        
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .sidebar .menu {
+            padding-top: 20px;
+        }
+        
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+            color: #2c3e50;
+            padding: 0 15px;
+        }
+        
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #555;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 15px;
+            border-radius: 6px;
+            margin: 5px 10px;
+        }
+        
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar a:hover {
+            background: #f0f0f0;
+        }
+        
+        .sidebar a.active {
+            background: #f0f0f0;
+            color: #3498db;
+            font-weight: 600;
+        }
+        
+        .sidebar .support {
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .submenu {
+            display: none;
+            flex-direction: column;
+            margin-left: 15px;
+            border-left: 2px solid #e0e0e0;
+            position: relative;
+            width: calc(100% - 30px);
+        }
+        
+        .submenu.active {
+            display: flex;
+        }
+        
+        .submenu a {
+            padding: 10px 15px;
+            margin: 2px 10px;
+            font-size: 14px;
+        }
+        
+        .submenu a i {
+            font-size: 12px;
+        }
+        
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        
+        .menu-toggle .arrow {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+        
+        .menu-toggle.active .arrow {
+            transform: rotate(180deg);
+        }
+        /* EXISTING STYLES */
+        
         body {
             font-family: Arial, sans-serif;
             background: #f5f6fa;
             margin: 0;
             padding: 0;
         }
-        /* Navbar Styles */
+        /* HR Management Header Styles */
         
-        .navbar {
+        .hr-header {
             background: #fff;
-            padding: 12px 30px;
+            padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -24,48 +134,12 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            margin-bottom: 20px;
         }
         
-        .navbar .logo {
+        .hr-header .logo {
             font-size: 18px;
             font-weight: bold;
-        }
-        
-        .navbar .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-        }
-        
-        .navbar ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            gap: 25px;
-            align-items: center;
-        }
-        
-        .navbar ul li {
-            display: inline;
-        }
-        
-        .navbar ul li a {
-            text-decoration: none;
-            color: #444;
-            font-size: 14px;
-        }
-        
-        .navbar ul li a.active {
-            font-weight: bold;
-            color: #000;
-        }
-        
-        .navbar .profile {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
         }
         /* Card Styles */
         
@@ -73,8 +147,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: calc(100vh - 60px);
-            /* Adjusted for navbar height */
+            height: calc(100vh - 120px);
+            /* Adjusted for header */
         }
         
         .card {
@@ -167,65 +241,166 @@
 </head>
 
 <body>
-    <!-- Navbar -->
-    <div class="navbar">
-        <div class="logo">HR System</div>
-        <div class="nav-right">
-            <ul>
-                <li><a href="dashboard.html">Dashboard</a></li>
-                <li><a href="employees.html">Employees</a></li>
-                <li><a href="attendance.html">Attendance</a></li>
-                <li><a href="holidays.html" class="active">Holidays</a></li>
-                <li><a href="leaves.html">Leaves</a></li>
-                <li><a href="reports.html">Reports</a></li>
-            </ul>
-            <div class="profile">
-                <img src="https://via.placeholder.com/20" alt="Profile"> Profile
+    <!-- ADMIN-ONLY ACCESS CHECK -->
+    <script>
+        const role = localStorage.getItem("role");
+        if (role !== "admin") {
+            alert("Access denied!");
+            window.location.href = "dashboard.html";
+        }
+    </script>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="menu">
+            <h2>ALMS</h2>
+            <a href="dashboard.html">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+
+            <!-- Employees - Admin Only -->
+            <a href="employee_list.html" id="empMgmtLink">
+                <i class="fa-solid fa-users"></i> Employees
+            </a>
+
+            <a href="attendance.html">
+                <i class="fa-regular fa-clock"></i> Attendance
+            </a>
+
+            <a href="holidays.html">
+                <i class="fa-regular fa-calendar"></i> Holidays
+            </a>
+
+            <!-- Leaves with sub-menu -->
+            <a href="javascript:void(0)" id="leavesToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-bar"></i> Leaves
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="leavesSubmenu" class="submenu">
+                <a href="leave_applications.html">
+                    <i class="fa-regular fa-circle"></i> Leave Applications
+                </a>
+                <a href="leave_master.html">
+                    <i class="fa-regular fa-circle"></i> Leave Master
+                </a>
             </div>
+
+            <!-- Reports with sub-menu - Admin Only -->
+            <a href="javascript:void(0)" id="reportsToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-pie"></i> Reports
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="reportsSubmenu" class="submenu">
+                <a href="reports.html">
+                    <i class="fa-regular fa-circle"></i> General Reports
+                </a>
+                <a href="attendance_report.html">
+                    <i class="fa-regular fa-circle"></i> Attendance Reports
+                </a>
+                <a href="leave_report.html">
+                    <i class="fa-regular fa-circle"></i> Leave Reports
+                </a>
+            </div>
+
+            <a href="#">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
+        </div>
+
+        <div class="support">
+            <a href="#">
+                <i class="fa-regular fa-circle-question"></i> Help & Support
+            </a>
         </div>
     </div>
 
-<<<<<<< HEAD
-=======
+    <div class="main-content">
+        <!-- HR Management Header -->
+        <div class="hr-header">
+            <div class="logo">HR Management</div>
+        </div>
 
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
-    <!-- Form Container -->
-    <div class="container">
-        <div class="card">
-            <h2>Adjust Leave Balance</h2>
-            <p>Add or update leave balances for an employee.</p>
+        <!-- Form Container -->
+        <div class="container">
+            <div class="card">
+                <h2>Adjust Leave Balance</h2>
+                <p>Add or update leave balances for an employee.</p>
 
-            <label for="empId">Employee ID</label>
-            <input type="text" id="empId" placeholder="e.g., EMP12345">
+                <label for="empId">Employee ID</label>
+                <input type="text" id="empId" placeholder="e.g., EMP12345">
 
-            <label>Leave Type</label>
-            <div class="leave-types">
-                <button type="button" class="leave-btn" data-id="1" onclick="selectLeave(this)">Casual (CL)</button>
-                <button type="button" class="leave-btn" data-id="2" onclick="selectLeave(this)">Earned (EL)</button>
-                <button type="button" class="leave-btn" data-id="3" onclick="selectLeave(this)">Hospital (HL)</button>
-            </div>
+                <label>Leave Type</label>
+                <div class="leave-types">
+                    <button type="button" class="leave-btn" data-id="1" onclick="selectLeave(this)">Casual (CL)</button>
+                    <button type="button" class="leave-btn" data-id="2" onclick="selectLeave(this)">Earned (EL)</button>
+                    <button type="button" class="leave-btn" data-id="3" onclick="selectLeave(this)">Hospital (HL)</button>
+                </div>
 
-            <label for="balance">Balance</label>
-            <input type="number" id="balance" placeholder="e.g., 10">
+                <label for="balance">Balance</label>
+                <input type="number" id="balance" placeholder="e.g., 10">
 
-            <div class="actions">
-                <button class="cancel-btn" onclick="resetForm()">Cancel</button>
-                <button class="submit-btn" onclick="submitForm()">Submit</button>
+                <div class="actions">
+                    <button class="cancel-btn" onclick="resetForm()">Cancel</button>
+                    <button class="submit-btn" onclick="submitForm()">Submit</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-<<<<<<< HEAD
-        document.addEventListener("DOMContentLoaded", async() => {
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set active page highlighting
+            const currentPage = window.location.pathname.split("/").pop();
+            const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
+
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage || (currentPage === '' && href === 'dashboard.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Submenu toggle functionality
+            const leavesToggle = document.getElementById("leavesToggle");
+            const leavesSubmenu = document.getElementById("leavesSubmenu");
+
+            if (leavesToggle && leavesSubmenu) {
+                leavesToggle.addEventListener('click', () => {
+                    leavesToggle.classList.toggle('active');
+                    leavesSubmenu.classList.toggle('active');
+                });
+            }
+
+            const reportsToggle = document.getElementById("reportsToggle");
+            const reportsSubmenu = document.getElementById("reportsSubmenu");
+
+            if (reportsToggle && reportsSubmenu) {
+                reportsToggle.addEventListener('click', () => {
+                    reportsToggle.classList.toggle('active');
+                    reportsSubmenu.classList.toggle('active');
+                });
+            }
+        });
+
+        // EXISTING SCRIPT
+        document.addEventListener("DOMContentLoaded", async function() {
             const urlParams = new URLSearchParams(window.location.search);
             const empId = urlParams.get("empId");
             const leaveType = urlParams.get("type");
 
-            // Set employee ID
+            // Set employee ID (use consistent ID)
             if (empId) {
                 const empIdField = document.getElementById("empId");
-                if (empIdField) empIdField.value = empId;
+                if (empIdField) {
+                    empIdField.value = empId;
+                }
             }
 
             // Auto-select leave type if provided
@@ -235,16 +410,18 @@
                     'EL': '2',
                     'HL': '3'
                 };
-                const button = document.querySelector(`.leave-btn[data-id="${leaveMap[leaveType]}"]`);
-                if (button) selectLeave(button);
+                const button = document.querySelector('.leave-btn[data-id="' + leaveMap[leaveType] + '"]');
+                if (button) {
+                    selectLeave(button);
+                }
 
-                // Fetch current balance
+                // Also try to fetch current balance
                 try {
-                    const res = await fetch(`/api/leave_balance?empId=${empId}&leave_code=${leaveType}`);
+                    const res = await fetch('/api/leave_balance?empId=' + empId + '&leave_code=' + leaveType);
                     if (res.ok) {
                         const data = await res.json();
                         const balanceField = document.getElementById("balance");
-                        if (balanceField && data.balance !== undefined) {
+                        if (balanceField) {
                             balanceField.value = data.balance;
                         }
                     }
@@ -253,26 +430,34 @@
                 }
             }
 
-            const submitBtn = document.querySelector('.submit-btn');
-            const cancelBtn = document.querySelector('.cancel-btn');
-            const balanceField = document.getElementById('balance');
-            const empIdField = document.getElementById('empId');
+            // ✅ FIXED: Replaced optional chaining with traditional null checks
+            var submitBtn = document.querySelector('.submit-btn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', submitForm);
+            }
 
-            if (submitBtn) submitBtn.addEventListener('click', submitForm);
-            if (cancelBtn) cancelBtn.addEventListener('click', () => {
-                resetForm();
-                window.close();
-            });
+            var cancelBtn = document.querySelector('.cancel-btn');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function() {
+                    resetForm();
+                    window.close();
+                });
+            }
 
+            var balanceField = document.getElementById('balance');
             if (balanceField) {
                 balanceField.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') submitForm();
                 });
             }
 
-            if (empIdField && balanceField) {
+            var empIdField = document.getElementById('empId');
+            if (empIdField) {
                 empIdField.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') balanceField.focus();
+                    if (e.key === 'Enter') {
+                        var balanceField = document.getElementById('balance');
+                        if (balanceField) balanceField.focus();
+                    }
                 });
             }
         });
@@ -281,25 +466,32 @@
         let selectedLeaveId = "";
 
         function selectLeave(button) {
-            document.querySelectorAll(".leave-btn").forEach(btn => btn.classList.remove("active"));
+            document.querySelectorAll(".leave-btn").forEach(function(btn) {
+                btn.classList.remove("active");
+            });
             button.classList.add("active");
             selectedLeave = button.innerText.split("(")[0].trim();
             selectedLeaveId = button.getAttribute("data-id");
 
+            // Auto-fill defaults
             const balanceField = document.getElementById("balance");
             if (balanceField) {
-                if (selectedLeaveId === "1") balanceField.value = 12;
-                if (selectedLeaveId === "2") balanceField.value = 15;
-                if (selectedLeaveId === "3") balanceField.value = 15;
+                if (selectedLeaveId === "1") balanceField.value = 12; // CL
+                if (selectedLeaveId === "2") balanceField.value = 15; // EL  
+                if (selectedLeaveId === "3") balanceField.value = 15; // HL
             }
         }
 
         function resetForm() {
             const empIdField = document.getElementById("empId");
             const balanceField = document.getElementById("balance");
+
             if (empIdField) empIdField.value = "";
             if (balanceField) balanceField.value = "";
-            document.querySelectorAll(".leave-btn").forEach(btn => btn.classList.remove("active"));
+
+            document.querySelectorAll(".leave-btn").forEach(function(btn) {
+                btn.classList.remove("active");
+            });
             selectedLeave = "";
             selectedLeaveId = "";
         }
@@ -367,155 +559,6 @@
             }
         }
     </script>
-=======
-document.addEventListener("DOMContentLoaded", async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const empId = urlParams.get("empId");
-    const leaveType = urlParams.get("type");
-
-    // Set employee ID (use consistent ID)
-    if (empId) {
-        const empIdField = document.getElementById("empId");
-        if (empIdField) {
-            empIdField.value = empId;
-        }
-    }
-
-    // Auto-select leave type if provided
-    if (leaveType) {
-        const leaveMap = {
-            'CL': '1',
-            'EL': '2', 
-            'HL': '3'
-        };
-        const button = document.querySelector(`.leave-btn[data-id="${leaveMap[leaveType]}"]`);
-        if (button) {
-            selectLeave(button);
-        }
-        
-        // Also try to fetch current balance
-        try {
-            const res = await fetch(`/api/leave_balance?empId=${empId}&leave_code=${leaveType}`);
-            if (res.ok) {
-                const data = await res.json();
-                const balanceField = document.getElementById("balance");
-                if (balanceField) {
-                    balanceField.value = data.balance;
-                }
-            }
-        } catch (err) {
-            console.error("Error fetching balance:", err);
-        }
-    }
-
-    // Add event listeners
-    document.querySelector('.submit-btn')?.addEventListener('click', submitForm);
-    document.querySelector('.cancel-btn')?.addEventListener('click', function() {
-        resetForm();
-        window.close();
-    });
-
-    document.getElementById('balance')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') submitForm();
-    });
-
-    document.getElementById('empId')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') document.getElementById('balance')?.focus();
-    });
-});
-
-let selectedLeave = "";
-let selectedLeaveId = "";
-
-function selectLeave(button) {
-    document.querySelectorAll(".leave-btn").forEach(btn => btn.classList.remove("active"));
-    button.classList.add("active");
-    selectedLeave = button.innerText.split("(")[0].trim();
-    selectedLeaveId = button.getAttribute("data-id");
-
-    // Auto-fill defaults
-    const balanceField = document.getElementById("balance");
-    if (balanceField) {
-        if (selectedLeaveId === "1") balanceField.value = 12; // CL
-        if (selectedLeaveId === "2") balanceField.value = 15; // EL  
-        if (selectedLeaveId === "3") balanceField.value = 15; // HL
-    }
-}
-
-function resetForm() {
-    const empIdField = document.getElementById("empId");
-    const balanceField = document.getElementById("balance");
-    
-    if (empIdField) empIdField.value = "";
-    if (balanceField) balanceField.value = "";
-    
-    document.querySelectorAll(".leave-btn").forEach(btn => btn.classList.remove("active"));
-    selectedLeave = "";
-    selectedLeaveId = "";
-}
-
-async function submitForm() {
-    const empIdField = document.getElementById("empId");
-    const balanceField = document.getElementById("balance");
-    
-    if (!empIdField || !balanceField) {
-        alert("Form elements not found!");
-        return;
-    }
-
-    const empId = empIdField.value.trim();
-    const balance = balanceField.value.trim();
-
-    if (!empId || !selectedLeaveId || !balance) {
-        alert("Please fill all fields and select a leave type.");
-        return;
-    }
-
-    if (isNaN(balance) || parseFloat(balance) < 0) {
-        alert("Please enter a valid positive number for balance.");
-        return;
-    }
-
-    const leaveData = {
-        EmpId: empId,
-        leave_type_id: selectedLeaveId,
-        leave_desc: selectedLeave,
-        balance: parseFloat(balance)
-    };
-
-    console.log("Sending data:", leaveData);
-
-    try {
-        const response = await fetch("http://localhost:3000/api/adjust_leave_balance", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(leaveData)
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            alert("Leave balance updated successfully!");
-            try {
-                if (window.opener && !window.opener.closed) {
-                    window.opener.postMessage({ action: "refreshLeaveData" }, "*");
-                }
-            } catch (e) {
-                console.warn("Cannot access opener:", e);
-            }
-            window.location.href = "leave_master.html";
-        } else {
-            alert(data.message || "Failed to update leave balance");
-        }
-    } catch (err) {
-        console.error("Error saving leave balance:", err);
-        alert("Error saving leave balance: " + err.message);
-    }
-}
-</script>
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
 </body>
 
 </html>

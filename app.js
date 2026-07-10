@@ -15,11 +15,7 @@ app.use(express.static(path.join(__dirname, "public"))); // serve frontend files
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-<<<<<<< HEAD
-    password: "@Prasi05@", // change if needed
-=======
-    password: "root", // change if needed
->>>>>>> 2ce0720cd2185cce4b05da6b8e8872741e5c6cf4
+    password: "Root@123", // change if needed
     database: "hr_system"
 });
 

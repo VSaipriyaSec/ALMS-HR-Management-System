@@ -8,6 +8,114 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
+        /* ===== SIDEBAR STYLES ===== */
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar .menu {
+            padding-top: 20px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+            color: #2c3e50;
+            padding: 0 15px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #555;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 15px;
+            border-radius: 6px;
+            margin: 5px 10px;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar a:hover {
+            background: #f0f0f0;
+        }
+
+        .sidebar a.active {
+            background: #f0f0f0;
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .sidebar .support {
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .submenu {
+            display: none;
+            flex-direction: column;
+            margin-left: 15px;
+            border-left: 2px solid #e0e0e0;
+            position: relative;
+            width: calc(100% - 30px);
+        }
+
+        .submenu.active {
+            display: flex;
+        }
+
+        .submenu a {
+            padding: 10px 15px;
+            margin: 2px 10px;
+            font-size: 14px;
+        }
+
+        .submenu a i {
+            font-size: 12px;
+        }
+
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .menu-toggle .arrow {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+
+        .menu-toggle.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* EXISTING STYLES */
         body {
             font-family: Arial, sans-serif;
             background: #f5f7fa;
@@ -200,64 +308,187 @@
 </head>
 
 <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="menu">
+            <h2>ALMS</h2>
+            <a href="dashboard.html">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+            
+            <!-- Employees - Admin Only -->
+            <a href="employee_list.html" id="empMgmtLink" style="display: none;">
+                <i class="fa-solid fa-users"></i> Employees
+            </a>
+            
+            <a href="attendance.html" class="active">
+                <i class="fa-regular fa-clock"></i> Attendance
+            </a>
+            
+            <a href="holidays.html">
+                <i class="fa-regular fa-calendar"></i> Holidays
+            </a>
 
-    <!-- Page Title -->
-    <div class="page-title">Mark Your Attendance</div>
-    <div class="subtitle">Welcome back! Please clock in to start your day.</div>
-
-    <!-- Main Card -->
-    <div class="card">
-        <div class="datetime-label">Current Date & Time</div>
-        <div id="datetime" class="datetime"></div>
-
-        <!-- btnOut is hidden by default, will be toggled by JS -->
-        <button id="btnIn" class="btn-in" onclick="clockIn()">Clock In</button>
-        <button id="btnOut" class="btn-out" onclick="clockOut()" style="display:none">Clock Out</button>
-    </div>
-
-    <!-- Summary -->
-    <div class="summary">
-        <h2>Today's Summary</h2>
-        <div class="summary-boxes">
-            <div class="summary-card">
-                <div class="icon-circle blue"><i class="fa-solid fa-right-to-bracket"></i></div>
-                <div class="summary-text">
-                    <h3>Last Clock In</h3>
-                    <p id="lastIn">--:--</p>
-                </div>
+            <!-- Leaves with sub-menu -->
+            <a href="javascript:void(0)" id="leavesToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-bar"></i> Leaves
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="leavesSubmenu" class="submenu">
+                <a href="leave_applications.html">
+                    <i class="fa-regular fa-circle"></i> Leave Applications
+                </a>
+                <a href="leave_master.html">
+                    <i class="fa-regular fa-circle"></i> Leave Master
+                </a>
             </div>
-            <div class="summary-card">
-                <div class="icon-circle orange"><i class="fa-solid fa-right-from-bracket"></i></div>
-                <div class="summary-text">
-                    <h3>Last Clock Out</h3>
-                    <p id="lastOut">--:--</p>
-                </div>
+
+            <!-- Reports with sub-menu - Admin Only -->
+            <a href="javascript:void(0)" id="reportsToggle" class="menu-toggle" style="display: none;">
+                <span>
+                    <i class="fa-solid fa-chart-pie"></i> Reports
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="reportsSubmenu" class="submenu">
+                <a href="reports.html">
+                    <i class="fa-regular fa-circle"></i> General Reports
+                </a>
+                <a href="attendance_report.html">
+                    <i class="fa-regular fa-circle"></i> Attendance Reports
+                </a>
+                <a href="leave_report.html">
+                    <i class="fa-regular fa-circle"></i> Leave Reports
+                </a>
             </div>
-            <div class="summary-card">
-                <div class="icon-circle green"><i class="fa-solid fa-hourglass-half"></i></div>
-                <div class="summary-text">
-                    <h3>Hours Worked Today</h3>
-                    <p id="hoursWorked">0.00 hrs</p>
-                </div>
-            </div>
+
+            <a href="#">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
+        </div>
+        
+        <div class="support">
+            <a href="#">
+                <i class="fa-regular fa-circle-question"></i> Help & Support
+            </a>
         </div>
     </div>
 
-    <div class="summary" style="max-width:700px; text-align:left;">
-        <h2>Today's Logs</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Clock In</th>
-                    <th>Clock Out</th>
-                    <th>Work Hours (hrs)</th>
-                </tr>
-            </thead>
-            <tbody id="logsTableBody"></tbody>
-        </table>
+    <div class="main-content">
+        <!-- EXISTING CONTENT -->
+        <!-- Page Title -->
+        <div class="page-title">Mark Your Attendance</div>
+        <div class="subtitle">Welcome back! Please clock in to start your day.</div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <div class="datetime-label">Current Date & Time</div>
+            <div id="datetime" class="datetime"></div>
+
+            <!-- btnOut is hidden by default, will be toggled by JS -->
+            <button id="btnIn" class="btn-in" onclick="clockIn()">Clock In</button>
+            <button id="btnOut" class="btn-out" onclick="clockOut()" style="display:none">Clock Out</button>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary">
+            <h2>Today's Summary</h2>
+            <div class="summary-boxes">
+                <div class="summary-card">
+                    <div class="icon-circle blue"><i class="fa-solid fa-right-to-bracket"></i></div>
+                    <div class="summary-text">
+                        <h3>Last Clock In</h3>
+                        <p id="lastIn">--:--</p>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="icon-circle orange"><i class="fa-solid fa-right-from-bracket"></i></div>
+                    <div class="summary-text">
+                        <h3>Last Clock Out</h3>
+                        <p id="lastOut">--:--</p>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="icon-circle green"><i class="fa-solid fa-hourglass-half"></i></div>
+                    <div class="summary-text">
+                        <h3>Hours Worked Today</h3>
+                        <p id="hoursWorked">0.00 hrs</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary" style="max-width:700px; text-align:left;">
+            <h2>Today's Logs</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Clock In</th>
+                        <th>Clock Out</th>
+                        <th>Work Hours (hrs)</th>
+                    </tr>
+                </thead>
+                <tbody id="logsTableBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const role = localStorage.getItem("role") || "employee";
+            
+            // Role-based access control
+            const adminOnlyElements = [
+                'empMgmtLink',
+                'reportsToggle'
+            ];
+
+            adminOnlyElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = role === "admin" ? "flex" : "none";
+                }
+            });
+
+            // Submenu toggle functionality
+            const leavesToggle = document.getElementById("leavesToggle");
+            const leavesSubmenu = document.getElementById("leavesSubmenu");
+            
+            if (leavesToggle && leavesSubmenu) {
+                leavesToggle.addEventListener('click', () => {
+                    leavesToggle.classList.toggle('active');
+                    leavesSubmenu.classList.toggle('active');
+                });
+            }
+
+            const reportsToggle = document.getElementById("reportsToggle");
+            const reportsSubmenu = document.getElementById("reportsSubmenu");
+            
+            if (reportsToggle && reportsSubmenu) {
+                reportsToggle.addEventListener('click', () => {
+                    reportsToggle.classList.toggle('active');
+                    reportsSubmenu.classList.toggle('active');
+                });
+            }
+
+            // Set active page highlighting
+            const currentPage = window.location.pathname.split("/").pop();
+            const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
+            
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage || (currentPage === '' && href === 'dashboard.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+
+        // EXISTING SCRIPT
         const EmpId = localStorage.getItem("EmpId") || "E001";
 
         // Date/time display

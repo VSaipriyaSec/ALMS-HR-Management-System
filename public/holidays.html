@@ -1,179 +1,429 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HR System - Holidays</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f8f9fa;
-    }
-    header {
-      background: #fff;
-      padding: 15px 20px;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    header h1 {
-      font-size: 18px;
-      margin: 0;
-      color: #333;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    nav {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-    nav a {
-      text-decoration: none;
-      color: #555;
-      font-weight: 500;
-    }
-    nav a.active {
-      font-weight: bold;
-    }
-    .btn {
-      padding: 6px 12px;
-      background: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      font-size: 13px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .container {
-      padding: 20px;
-    }
-    .top-actions {
-      display: flex;
-      justify-content: flex-end;
-      margin: 15px 0;
-    }
-    .container h2 {
-      margin: 0 0 20px 0;
-    }
-    .holiday-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .holiday-table th, .holiday-table td {
-      border: 1px solid #ddd;
-      padding: 12px;
-      text-align: left;
-    }
-    .holiday-table th {
-      background: #f4f4f4;
-    }
-    .holiday-name {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .holiday-actions {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-    .holiday-actions span {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      font-size: 14px;
-      color: #007bff;
-    }
-    .holiday-actions span.delete {
-      color: red;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALMS - Holidays</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* ===== SIDEBAR STYLES ===== */
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar .menu {
+            padding-top: 20px;
+            flex: 1;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+            color: #2c3e50;
+            padding: 0 15px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #555;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 15px;
+            border-radius: 6px;
+            margin: 5px 10px;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar a:hover {
+            background: #f0f0f0;
+        }
+
+        .sidebar a.active {
+            background: #f0f0f0;
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .sidebar .support {
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .submenu {
+            display: none;
+            flex-direction: column;
+            margin-left: 15px;
+            border-left: 2px solid #e0e0e0;
+            position: relative;
+            width: calc(100% - 30px);
+        }
+        
+        .submenu.active {
+            display: flex;
+        }
+
+        .submenu a {
+            padding: 10px 15px;
+            margin: 2px 10px;
+            font-size: 14px;
+        }
+
+        .submenu a i {
+            font-size: 12px;
+        }
+
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .menu-toggle .arrow {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+
+        .menu-toggle.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* EXISTING STYLES */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f8f9fa;
+        }
+        
+        header {
+            background: #fff;
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        header h1 {
+            font-size: 18px;
+            margin: 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        nav a.active {
+            font-weight: bold;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        .top-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin: 15px 0;
+        }
+        
+        .container h2 {
+            margin: 0 0 20px 0;
+        }
+        
+        .holiday-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .holiday-table th,
+        .holiday-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .holiday-table th {
+            background: #f4f4f4;
+        }
+        
+        .holiday-name {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .holiday-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .holiday-actions span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #007bff;
+        }
+        
+        .holiday-actions span.delete {
+            color: red;
+        }
+    </style>
 </head>
+
 <body>
-  
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="menu">
+            <h2>ALMS</h2>
+            <a href="dashboard.html">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+            
+            <!-- Employees - Admin Only -->
+            <a href="employee_list.html" id="empMgmtLink" style="display: none;">
+                <i class="fa-solid fa-users"></i> Employees
+            </a>
+            
+            <a href="attendance.html">
+                <i class="fa-regular fa-clock"></i> Attendance
+            </a>
+            
+            <a href="holidays.html" class="active">
+                <i class="fa-regular fa-calendar"></i> Holidays
+            </a>
 
-  <!-- HEADER -->
-  <header>
-    <h1><i class="fa-solid fa-cube"></i> HR System</h1>
-    <nav>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="employees.html">Employees</a>
-      <a href="attendance.html">Attendance</a>
-      <a href="leaves.html">Leaves</a>
-      <a href="holidays.html">Holidays</a>
-      <a href="reports.html">Reports</a>
-      <i class="fa-solid fa-bell fa-lg" style="color:#555; cursor:pointer;"></i>
-    </nav>
-  </header>
+            <!-- Leaves with sub-menu -->
+            <a href="javascript:void(0)" id="leavesToggle" class="menu-toggle">
+                <span>
+                    <i class="fa-solid fa-chart-bar"></i> Leaves
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="leavesSubmenu" class="submenu">
+                <a href="leave_applications.html">
+                    <i class="fa-regular fa-circle"></i> Leave Applications
+                </a>
+                <a href="leave_master.html">
+                    <i class="fa-regular fa-circle"></i> Leave Master
+                </a>
+            </div>
 
-  <!-- MAIN -->
-  <div class="container">
-    <!-- Add New Holiday button -->
-    <div class="top-actions">
-      <button id="addHolidayBtn" class="btn"><i class="fa fa-plus"></i> Add New Holiday</button>
+            <!-- Reports with sub-menu - Admin Only -->
+            <a href="javascript:void(0)" id="reportsToggle" class="menu-toggle" style="display: none;">
+                <span>
+                    <i class="fa-solid fa-chart-pie"></i> Reports
+                </span>
+                <i class="fa-solid fa-caret-down arrow"></i>
+            </a>
+            <div id="reportsSubmenu" class="submenu">
+                <a href="reports.html">
+                    <i class="fa-regular fa-circle"></i> General Reports
+                </a>
+                <a href="attendance_report.html">
+                    <i class="fa-regular fa-circle"></i> Attendance Reports
+                </a>
+                <a href="leave_report.html">
+                    <i class="fa-regular fa-circle"></i> Leave Reports
+                </a>
+            </div>
+
+            <a href="#">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
+        </div>
+        
+        <div class="support">
+            <a href="#">
+                <i class="fa-regular fa-circle-question"></i> Help & Support
+            </a>
+        </div>
     </div>
 
-    <h2>Company Holidays</h2>
+    <div class="main-content">
+        <!-- EXISTING CONTENT -->
+        <!-- HEADER -->
+        <header>
+            <h1><i class="fa-solid fa-cube"></i> ALMS</h1>
+            <nav>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="employees.html">Employees</a>
+                <a href="attendance.html">Attendance</a>
+                <a href="leaves.html">Leaves</a>
+                <a href="holidays.html">Holidays</a>
+                <a href="reports.html">Reports</a>
+                <i class="fa-solid fa-bell fa-lg" style="color:#555; cursor:pointer;"></i>
+            </nav>
+        </header>
 
-    <table class="holiday-table" id="holidayTable">
-      <thead>
-        <tr>
-          <th>YEAR</th>
-          <th>DATE</th>
-          <th>NAME OF THE HOLIDAY</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Holidays will be loaded here -->
-      </tbody>
-    </table>
-  </div>
+        <!-- MAIN -->
+        <div class="container">
+            <!-- Add New Holiday button -->
+            <div class="top-actions">
+                <button id="addHolidayBtn" class="btn"><i class="fa fa-plus"></i> Add New Holiday</button>
+            </div>
 
-  <script>
-    const role = localStorage.getItem("role") || "employee";
+            <h2>Company Holidays</h2>
 
-    // Handle Add Holiday button visibility
-    const addBtn = document.getElementById("addHolidayBtn");
-    if (role !== "admin") {
-      addBtn.style.display = "none"; // Employees cannot add
-    } else {
-      addBtn.addEventListener("click", () => {
-        window.location.href = "add_new_holidays.html";
-      });
-    }
+            <table class="holiday-table" id="holidayTable">
+                <thead>
+                    <tr>
+                        <th>YEAR</th>
+                        <th>DATE</th>
+                        <th>NAME OF THE HOLIDAY</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Holidays will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-    // Highlight active page in nav
-    const navLinks = document.querySelectorAll('header nav a');
-    const currentPage = window.location.pathname.split("/").pop();
-    navLinks.forEach(link => {
-      if (link.getAttribute('href') === currentPage) {
-        link.classList.add('active');
-      }
-    });
+    <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const role = localStorage.getItem("role") || "employee";
+            
+            // Role-based access control
+            const adminOnlyElements = [
+                'empMgmtLink',
+                'reportsToggle'
+            ];
 
-    async function loadHolidays() {
-      const tbody = document.querySelector("#holidayTable tbody");
-      try {
-        const res = await fetch("http://localhost:3000/api/holidays");
-        const holidays = await res.json();
-        tbody.innerHTML = "";
+            adminOnlyElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = role === "admin" ? "flex" : "none";
+                }
+            });
 
-        holidays.forEach(h => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
+            // Submenu toggle functionality
+            const leavesToggle = document.getElementById("leavesToggle");
+            const leavesSubmenu = document.getElementById("leavesSubmenu");
+            
+            if (leavesToggle && leavesSubmenu) {
+                leavesToggle.addEventListener('click', () => {
+                    leavesToggle.classList.toggle('active');
+                    leavesSubmenu.classList.toggle('active');
+                });
+            }
+
+            const reportsToggle = document.getElementById("reportsToggle");
+            const reportsSubmenu = document.getElementById("reportsSubmenu");
+            
+            if (reportsToggle && reportsSubmenu) {
+                reportsToggle.addEventListener('click', () => {
+                    reportsToggle.classList.toggle('active');
+                    reportsSubmenu.classList.toggle('active');
+                });
+            }
+
+            // Set active page highlighting
+            const currentPage = window.location.pathname.split("/").pop();
+            const sidebarLinks = document.querySelectorAll('.sidebar a[href]');
+            
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPage || (currentPage === '' && href === 'dashboard.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+
+        // EXISTING SCRIPT
+        const role = localStorage.getItem("role") || "employee";
+
+        // Handle Add Holiday button visibility
+        const addBtn = document.getElementById("addHolidayBtn");
+        if (role !== "admin") {
+            addBtn.style.display = "none"; // Employees cannot add
+        } else {
+            addBtn.addEventListener("click", () => {
+                window.location.href = "add_new_holidays.html";
+            });
+        }
+
+        // Highlight active page in nav
+        const navLinks = document.querySelectorAll('header nav a');
+        const currentPage = window.location.pathname.split("/").pop();
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === currentPage) {
+                link.classList.add('active');
+            }
+        });
+
+        async function loadHolidays() {
+            const tbody = document.querySelector("#holidayTable tbody");
+            try {
+                const res = await fetch("http://localhost:3000/api/holidays");
+                const holidays = await res.json();
+                tbody.innerHTML = "";
+
+                holidays.forEach(h => {
+                            const tr = document.createElement("tr");
+                            tr.innerHTML = `
             <td>${h.year}</td>
-            <td>${new Date(h.date).toLocaleDateString()}</td>
+            <td>${new Date(h.date).toLocaleDateString('en-GB')}</td>
             <td>
               <div class="holiday-name">
                 <span>${h.holiday_name}</span>
@@ -212,7 +462,8 @@
     }
 
     document.addEventListener("DOMContentLoaded", loadHolidays);
-  </script>
+    </script>
 
 </body>
+
 </html>

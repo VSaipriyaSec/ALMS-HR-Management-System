@@ -1,413 +1,909 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>HR Dashboard</title>
-  <!-- Font Awesome -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-  />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f5f7fa;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HR Dashboard</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+        }
+        /* Sidebar */
+        
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .sidebar .menu {
+            padding-top: 20px;
+        }
+        
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 20px;
+            color: #2c3e50;
+        }
+        
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #555;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 15px;
+            border-radius: 6px;
+            margin: 5px 10px;
+        }
+        
+        .sidebar a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar a:hover {
+            background: #f0f0f0;
+        }
+        
+        .sidebar a.active {
+            background: #f0f0f0;
+            color: #3498db;
+            font-weight: 600;
+        }
+        /* Main */
+        
+        .main {
+            margin-left: 220px;
+            padding: 20px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        /* Section Headings */
+        
+        .section-heading {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #2c3e50;
+        }
+        /* Quick Actions */
+        
+        .quick-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .quick-actions button {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.3s;
+            color: #333;
+        }
+        
+        .quick-actions button.selected {
+            background: #3498db;
+            color: #fff;
+            border: 1px solid #3498db;
+        }
+        /* Overview Cards */
+        
+        .cards {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .card {
+            flex: 1;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .card p {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .card h2 {
+            font-size: 28px;
+            margin: 10px 0;
+        }
+        /* Sections side by side */
+        
+        .sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .section {
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+        }
+        
+        .section h3 {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .section ul li {
+            background: #f9f9f9;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+        /* Employee List Table */
+        
+        #employeeListContainer {
+            margin-top: 20px;
+            display: none;
+            /* hidden until triggered */
+        }
+        
+        #employeeListContainer table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        #employeeListContainer th,
+        #employeeListContainer td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        #employeeListContainer th {
+            background-color: #f0f0f0;
+        }
+        /* Add this to your existing CSS */
+        
+        .card h2 {
+            font-size: 28px;
+            margin: 10px 0;
+            min-height: 60px;
+            /* Add this line */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .leave-breakdown {
+            font-size: 14px;
+            line-height: 1.4;
+            text-align: center;
+        }
+            /* Notification Styles */
+        .notification-container {
+            position: relative;
+            display: inline-block;
+        }
 
-    /* Sidebar */
-    .sidebar {
-      width: 220px;
-      background: #fff; 
-      border-right: 1px solid #ddd;
-      height: 100vh;
-      position: fixed;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .sidebar .menu {
-      padding-top: 20px;
-    }
-    .sidebar h2 {
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 20px;
-      color: #2c3e50;
-    }
-    .sidebar a {
-      display: flex;
-      align-items: center;
-      padding: 12px 20px;
-      color: #555;
-      text-decoration: none;
-      transition: 0.3s;
-      font-size: 15px;
-      border-radius: 6px;
-      margin: 5px 10px;
-    }
-    .sidebar a i {
-      margin-right: 10px;
-      width: 20px;
-      text-align: center;
-    }
-    .sidebar a:hover {
-      background: #f0f0f0;
-    }
-    .sidebar a.active {
-      background: #f0f0f0;
-      color: #3498db; 
-      font-weight: 600;
-    }
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            padding: 10px;
+            font-size: 18px;
+            color: #555;
+            background: #f8f9fa;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
 
-    /* Main */
-    .main {
-      margin-left: 220px;
-      padding: 20px;
-    }
-    .header h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
+        .notification-bell:hover {
+            background: #e9ecef;
+        }
 
-    /* Section Headings */
-    .section-heading {
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 12px;
-      color: #2c3e50;
-    }
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            min-width: 16px;
+            height: 16px;
+            text-align: center;
+            display: none;
+            font-weight: bold;
+        }
 
-    /* Quick Actions */
-    .quick-actions {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-    .quick-actions button {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      cursor: pointer;
-      background: #fff;
-      font-size: 14px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: 0.3s;
-      color: #333;
-    }
-    .quick-actions button.selected {
-      background: #3498db;
-      color: #fff;
-      border: 1px solid #3498db;
-    }
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 350px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+        }
 
-    /* Overview Cards */
-    .cards {
-      display: flex;
-      gap: 20px;
-      margin-top: 10px;
-    }
-    .card {
-      flex: 1;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    .card p {
-      font-weight: bold;
-      color: #555;
-    }
-    .card h2 {
-      font-size: 28px;
-      margin: 10px 0;
-    }
+        .notification-dropdown.show {
+            display: block;
+        }
 
-    /* Sections side by side */
-    .sections {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-top: 30px;
-    }
-    .section {
-      background: #fff;
-      padding: 15px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      font-size: 12px;
-    }
-    .section h3 {
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-    .section ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .section ul li {
-      background: #f9f9f9;
-      padding: 8px;
-      margin-bottom: 8px;
-      border-radius: 4px;
-    }
+        .notification-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    /* Employee List Table */
-    #employeeListContainer {
-      margin-top: 20px;
-      display: none; /* hidden until triggered */
-    }
-    #employeeListContainer table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    #employeeListContainer th, #employeeListContainer td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    #employeeListContainer th {
-      background-color: #f0f0f0;
-    }
-  </style>
+        .notification-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+
+        .notification-header button {
+            background: none;
+            border: none;
+            color: #3498db;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+        }
+
+        .notification-header button:hover {
+            text-decoration: underline;
+        }
+
+        .notification-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #f0f7ff;
+            border-left: 3px solid #3498db;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .notification-meta {
+            font-size: 11px;
+            color: #999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-type {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .type-info { background: #d4edff; color: #004085; }
+        .type-success { background: #d4edda; color: #155724; }
+        .type-warning { background: #fff3cd; color: #856404; }
+        .type-error { background: #f8d7da; color: #721c24; }
+
+        .notification-footer {
+            padding: 10px 15px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+
+        .notification-footer a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .notification-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Empty state */
+        .notification-empty {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
 </head>
+    </style>
+    </head>
+
 <body>
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="menu">
-      <h2>ALMS</h2>
-      <a href="#" class="active"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-      <a href="employee_management.html" id="empMgmtLink"><i class="fa-solid fa-users"></i> Employees</a>
-      <a href="attendance.html"><i class="fa-regular fa-clock"></i> Attendance</a>
-      <a href="holidays.html"><i class="fa-regular fa-calendar"></i> Holidays</a>
-      
-      <!-- Leaves with sub-menu -->
-      <a href="javascript:void(0)" id="leavesToggle"><i class="fa-solid fa-chart-bar"></i> Leaves <i class="fa-solid fa-caret-down" style="margin-left:auto;"></i></a>
-      <div id="leavesSubmenu" style="display:none; flex-direction:column; margin-left:15px;">
-        <a href="leave_applications.html"><i class="fa-regular fa-circle"></i> Leave Applications</a>
-        <a href="apply_leave.html"><i class="fa-regular fa-circle"></i> Apply for Leave</a>
-        <a href="leave_master.html"><i class="fa-regular fa-circle"></i> Leave Master</a>
-        <a href="adjust_leave_balance.html" id="adjustLeaveLink"><i class="fa-regular fa-circle"></i> Adjust Leave Balance</a>
-      </div>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="menu">
+            <h2>ALMS</h2>
+            <a href="#" class="active"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="employee_list.html" id="empMgmtLink"><i class="fa-solid fa-users"></i> Employees</a>
+            <a href="attendance.html"><i class="fa-regular fa-clock"></i> Attendance</a>
+            <a href="holidays.html"><i class="fa-regular fa-calendar"></i> Holidays</a>
 
-      <!-- ✅ Reports with sub-menu -->
-      <a href="javascript:void(0)" id="reportsToggle"><i class="fa-solid fa-chart-pie"></i> Reports <i class="fa-solid fa-caret-down" style="margin-left:auto;"></i></a>
-      <div id="reportsSubmenu" style="display:none; flex-direction:column; margin-left:15px;">
-        <a href="reports.html"><i class="fa-regular fa-circle"></i> General Reports</a>
-        <a href="attendance_report.html"><i class="fa-regular fa-circle"></i> Attendance Reports</a>
-        <a href="leave_report.html"><i class="fa-regular fa-circle"></i> Leave Reports</a>
-      </div>
+            <!-- Leaves with sub-menu -->
+            <a href="javascript:void(0)" id="leavesToggle"><i class="fa-solid fa-chart-bar"></i> Leaves <i class="fa-solid fa-caret-down" style="margin-left:auto;"></i></a>
+            <div id="leavesSubmenu" style="display:none; flex-direction:column; margin-left:15px;">
+                <a href="leave_applications.html"><i class="fa-regular fa-circle"></i> Leave Applications</a>
+                
+                <a href="leave_master.html"><i class="fa-regular fa-circle"></i> Leave Master</a>
+                
+            </div>
 
-      <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
-    </div>
-    <div class="support">
-      <a href="#"><i class="fa-regular fa-circle-question"></i> Help & Support</a>
-    </div>
-  </div>
+            <!-- ✅ Reports with sub-menu -->
+            <a href="javascript:void(0)" id="reportsToggle"><i class="fa-solid fa-chart-pie"></i> Reports <i class="fa-solid fa-caret-down" style="margin-left:auto;"></i></a>
+            <div id="reportsSubmenu" style="display:none; flex-direction:column; margin-left:15px;">
+                <a href="reports.html"><i class="fa-regular fa-circle"></i> General Reports</a>
+                <a href="attendance_report.html"><i class="fa-regular fa-circle"></i> Attendance Reports</a>
+                <a href="leave_report.html"><i class="fa-regular fa-circle"></i> Leave Reports</a>
+            </div>
 
-  <!-- Main Content -->
-  <div class="main">
-    <div class="header">
-      <h1>Dashboard</h1>
-    </div>
-
-    <!-- Quick Actions Section -->
-    <div>
-      <div class="section-heading">Quick Actions</div>
-      <div class="quick-actions">
-        <button class="selected"><i class="fa-regular fa-circle-check"></i> Approve Leaves</button>
-        <button id="markAttendanceBtn"><i class="fa-regular fa-calendar"></i> Mark Attendance</button>
-        <button id="generateReportsBtn"><i class="fa-solid fa-chart-bar"></i> Generate Reports</button>
-        <button id="viewEmployeesBtn"><i class="fa-regular fa-eye"></i> View Employees</button>
-      </div>
-    </div>
-
-    <!-- Overview Section -->
-    <div>
-      <div class="section-heading">Overview</div>
-      <div class="cards">
-        <div class="card">
-          <p>Total Employees</p>
-          <h2 id="totalEmployees">Loading...</h2>
+            <a href="#"><i class="fa-solid fa-gear"></i> Settings</a>
         </div>
-        <div class="card">
-          <p>Active Leaves</p>
-          <h2 id="activeLeaves">Loading...</h2>
+        <div class="support">
+            <a href="#"><i class="fa-regular fa-circle-question"></i> Help & Support</a>
         </div>
-        <div class="card">
-          <p>Upcoming Holidays</p>
-          <h2 id="upcomingHolidays">Loading...</h2>
+    </div>
+
+    <!-- Main Content -->
+<div class="main">
+    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>Dashboard</h1>
+        
+        <!-- Notification Bell and Dropdown -->
+        <div class="notification-container">
+            <div class="notification-bell" id="notificationBell">
+                <i class="fa-solid fa-bell"></i>
+                <span class="notification-badge" id="notificationBadge">0</span>
+            </div>
+            
+            <div class="notification-dropdown" id="notificationDropdown">
+                <div class="notification-header">
+                    <h3>Notifications</h3>
+                    <button id="markAllRead">Mark all as read</button>
+                </div>
+                <div class="notification-list" id="notificationList">
+                    <!-- Notifications will be loaded here -->
+                    <div class="notification-item">
+                        <div class="notification-title">No notifications</div>
+                        <div class="notification-message">You're all caught up!</div>
+                    </div>
+                </div>
+                <div class="notification-footer">
+                    <a href="notifications.html">View All Notifications</a>
+                </div>
+            </div>
         </div>
-      </div>
+    </div>
+        <!-- Quick Actions Section -->
+        <div>
+            <div class="section-heading">Quick Actions</div>
+            <div class="quick-actions">
+                <button class="selected"><i class="fa-regular fa-circle-check"></i> Approve Leaves</button>
+                <button id="markAttendanceBtn"><i class="fa-regular fa-calendar"></i> Mark Attendance</button>
+                <button id="generateReportsBtn"><i class="fa-solid fa-chart-bar"></i> Generate Reports</button>
+                <button id="viewEmployeesBtn"><i class="fa-regular fa-eye"></i> View Employees</button>
+            </div>
+        </div>
+
+        <!-- Overview Section -->
+        <div>
+            <div class="section-heading">Overview</div>
+            <div class="cards">
+                <div class="card">
+                    <p>Total Employees</p>
+                    <h2 id="totalEmployees">Loading...</h2>
+                </div>
+                <div class="card">
+                    <p>Leave Balance</p>
+                    <h2 id="activeLeaves">Loading...</h2>
+                </div>
+                <div class="card">
+                    <p>Upcoming Holidays</p>
+                    <h2 id="upcomingHolidays">Loading...</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sections Side by Side -->
+        <div class="sections">
+            <div class="section">
+                <h3>Pending Tasks</h3>
+                <ul id="pendingTasks"></ul>
+            </div>
+
+            <div class="section">
+                <h3>System Notifications</h3>
+                <ul id="systemNotifications"></ul>
+            </div>
+        </div>
+
+        <!-- Employee List Section -->
+        <div id="employeeListContainer">
+            <h3>Employee List</h3>
+            <button id="addEmployeeBtn">Add Employee</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>EmpId</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Designation</th>
+                        <th>Active</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeTableBody"></tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Sections Side by Side -->
-    <div class="sections">
-      <div class="section">
-        <h3>Pending Tasks</h3>
-        <ul id="pendingTasks"></ul>
-      </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const role = localStorage.getItem("role"); // 'admin' or 'employee'
+            const name = localStorage.getItem("Name");
+            const empId = (localStorage.getItem("EmpId") || "").trim();
 
-      <div class="section">
-        <h3>System Notifications</h3>
-        <ul id="systemNotifications"></ul>
-      </div>
-    </div>
+            const adjustLeaveLink = document.getElementById("adjustLeaveLink");
+            const empMgmtLink = document.getElementById("empMgmtLink");
+            const reportsToggle = document.getElementById("reportsToggle");
+            const viewBtn = document.getElementById("viewEmployeesBtn");
+            const reportBtn = document.getElementById("generateReportsBtn");
+            const addBtn = document.getElementById("addEmployeeBtn");
+            const empListContainer = document.getElementById("employeeListContainer");
 
-    <!-- Employee List Section -->
-    <div id="employeeListContainer">
-      <h3>Employee List</h3>
-      <button id="addEmployeeBtn">Add Employee</button>
-      <table>
-        <thead>
-          <tr>
-            <th>EmpId</th>
-            <th>Name</th>
-            <th>Department</th>
-            <th>Designation</th>
-            <th>Active</th>
-          </tr>
-        </thead>
-        <tbody id="employeeTableBody"></tbody>
-      </table>
-    </div>
-  </div>
+            if (role !== "admin") {
+                if (adjustLeaveLink) adjustLeaveLink.style.display = "none";
+                if (empMgmtLink) empMgmtLink.style.display = "none";
+                if (reportsToggle) reportsToggle.style.display = "none";
+                if (viewBtn) viewBtn.style.display = "none";
+                if (reportBtn) reportBtn.style.display = "none";
+                if (addBtn) addBtn.style.display = "none";
+                if (empListContainer) empListContainer.style.display = "none";
+            }
 
-  <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const role = localStorage.getItem("role"); // 'admin' or 'employee'
-    const name = localStorage.getItem("Name");
+            if (name) {
+                const headerH1 = document.querySelector('.header h1');
+                if (headerH1) headerH1.textContent = `Dashboard — Welcome ${name}`;
+            }
 
-    const adjustLeaveLink = document.getElementById("adjustLeaveLink");
-    const empMgmtLink = document.getElementById("empMgmtLink");
-    const reportsToggle = document.getElementById("reportsToggle");
-    const viewBtn = document.getElementById("viewEmployeesBtn");
-    const reportBtn = document.getElementById("generateReportsBtn");
-    const addBtn = document.getElementById("addEmployeeBtn");
-    const empListContainer = document.getElementById("employeeListContainer");
+            const leavesToggle = document.getElementById("leavesToggle");
+            const leavesSubmenu = document.getElementById("leavesSubmenu");
+            leavesToggle.addEventListener('click', () => {
+                const allSubmenus = document.querySelectorAll('.sidebar div[id$="Submenu"]');
+                allSubmenus.forEach(sm => {
+                    if (sm !== leavesSubmenu) sm.style.display = 'none';
+                });
+                leavesSubmenu.style.display = (leavesSubmenu.style.display === 'flex') ? 'none' : 'flex';
+            });
 
-    if (role !== "admin") {
-      if (adjustLeaveLink) adjustLeaveLink.style.display = "none";
-      if (empMgmtLink) empMgmtLink.style.display = "none";
-      if (reportsToggle) reportsToggle.style.display = "none";
-      if (viewBtn) viewBtn.style.display = "none";
-      if (reportBtn) reportBtn.style.display = "none";
-      if (addBtn) addBtn.style.display = "none";
-      if (empListContainer) empListContainer.style.display = "none";
-    }
+            const reportsSubmenu = document.getElementById("reportsSubmenu");
+            reportsToggle.addEventListener('click', () => {
+                const allSubmenus = document.querySelectorAll('.sidebar div[id$="Submenu"]');
+                allSubmenus.forEach(sm => {
+                    if (sm !== reportsSubmenu) sm.style.display = 'none';
+                });
+                reportsSubmenu.style.display = (reportsSubmenu.style.display === 'flex') ? 'none' : 'flex';
+            });
 
-    if (name) {
-      const headerH1 = document.querySelector('.header h1');
-      if(headerH1) headerH1.textContent = `Dashboard — Welcome ${name}`;
-    }
+            const sidebarLinks = document.querySelectorAll('.sidebar a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    sidebarLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                });
+            });
 
-    const leavesToggle = document.getElementById("leavesToggle");
-    const leavesSubmenu = document.getElementById("leavesSubmenu");
-    leavesToggle.addEventListener('click', () => {
-      const allSubmenus = document.querySelectorAll('.sidebar div[id$="Submenu"]');
-      allSubmenus.forEach(sm => { if(sm !== leavesSubmenu) sm.style.display = 'none'; });
-      leavesSubmenu.style.display = (leavesSubmenu.style.display === 'flex') ? 'none' : 'flex';
-    });
+            const quickBtns = document.querySelectorAll('.quick-actions button');
+            quickBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    quickBtns.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                });
+            });
 
-    const reportsSubmenu = document.getElementById("reportsSubmenu");
-    reportsToggle.addEventListener('click', () => {
-      const allSubmenus = document.querySelectorAll('.sidebar div[id$="Submenu"]');
-      allSubmenus.forEach(sm => { if(sm !== reportsSubmenu) sm.style.display = 'none'; });
-      reportsSubmenu.style.display = (reportsSubmenu.style.display === 'flex') ? 'none' : 'flex';
-    });
+            // Function to load employee leave balance
+            async function loadEmployeeLeaveBalance(empId, role) {
+                try {
+                    const leaveBalanceElement = document.getElementById('activeLeaves');
 
-    const sidebarLinks = document.querySelectorAll('.sidebar a');
-    sidebarLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        sidebarLinks.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-      });
-    });
+                    if (role === "admin") {
+                        // For admin, show their personal leave balance (not organizational total)
+                        try {
+                            // First try to get personal leave balance using employee-leave-balance API
+                            const response = await fetch(`http://localhost:3000/api/employee-leave-balance?empId=${empId}`);
+                            if (response.ok) {
+                                const balanceData = await response.json();
 
-    const quickBtns = document.querySelectorAll('.quick-actions button');
-    quickBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        quickBtns.forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-      });
-    });
+                                if (balanceData && balanceData.length > 0) {
+                                    let leaveText = balanceData.map(leave =>
+                                        `${leave.leave_code}: ${leave.available_balance || leave.total_balance || 0}`
+                                    ).join('<br>');
+                                    leaveBalanceElement.innerHTML = leaveText;
+                                    leaveBalanceElement.style.fontSize = "14px";
+                                    leaveBalanceElement.style.lineHeight = "1.4";
+                                } else {
+                                    // If no specific balance data, fallback to dashboard API
+                                    await loadFromDashboardAPI(empId, role, leaveBalanceElement);
+                                }
+                            } else {
+                                // If employee-leave-balance fails, use dashboard API
+                                await loadFromDashboardAPI(empId, role, leaveBalanceElement);
+                            }
+                        } catch (balanceError) {
+                            console.error('Error loading admin personal leave balance:', balanceError);
+                            // Fallback to dashboard API
+                            await loadFromDashboardAPI(empId, role, leaveBalanceElement);
+                        }
+                    } else {
+                        // For employee, show their personal available leave balance
+                        try {
+                            const response = await fetch(`http://localhost:3000/api/employee-leave-balance?empId=${empId}`);
+                            if (response.ok) {
+                                const balanceData = await response.json();
 
-    fetch('http://localhost:3000/api/dashboard')
-      .then(r => r.json())
-      .then(data => {
-        document.getElementById('totalEmployees').textContent = data.totalEmployees ?? 0;
-        document.getElementById('activeLeaves').textContent = data.activeLeaves ?? 0;
-        document.getElementById('upcomingHolidays').textContent = data.upcomingHolidays ?? 0;
-        document.getElementById('pendingTasks').innerHTML = (data.pendingTasks || []).map(t => `<li>${t}</li>`).join('');
-        document.getElementById('systemNotifications').innerHTML = (data.systemNotifications || []).map(n => `<li>${n}</li>`).join('');
-      })
-      .catch(err => console.error(err));
+                                if (balanceData && balanceData.length > 0) {
+                                    let leaveText = balanceData.map(leave =>
+                                        `${leave.leave_code}: ${leave.available_balance || leave.total_balance || 0}`
+                                    ).join('<br>');
+                                    leaveBalanceElement.innerHTML = leaveText;
+                                    leaveBalanceElement.style.fontSize = "14px";
+                                    leaveBalanceElement.style.lineHeight = "1.4";
+                                } else {
+                                    // If no specific balance data, try the regular dashboard API
+                                    await loadFromDashboardAPI(empId, role, leaveBalanceElement);
+                                }
+                            } else {
+                                throw new Error('Failed to fetch employee leave balance');
+                            }
+                        } catch (balanceError) {
+                            console.error('Error loading employee leave balance:', balanceError);
+                            // Fallback to regular dashboard data
+                            await loadFromDashboardAPI(empId, role, leaveBalanceElement);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading leave balance:', error);
+                    document.getElementById('activeLeaves').textContent = '0';
+                }
+            }
 
-    if(addBtn && role === "admin") {
-      addBtn.addEventListener("click", () => {
-        window.open("add_employee.html", "_blank", "width=900,height=700");
-      });
-    }
+            // Helper function to load from dashboard API
+            async function loadFromDashboardAPI(empId, role, leaveBalanceElement) {
+                const dashResponse = await fetch(`http://localhost:3000/api/dashboard?empId=${empId}&role=${role}`);
+                const dashData = await dashResponse.json();
 
-    if(viewBtn && role === "admin") {
-      viewBtn.addEventListener("click", loadEmployees);
-    }
+                if (dashData.leaveBreakdown && dashData.leaveBreakdown.length > 0) {
+                    let leaveText = dashData.leaveBreakdown.map(leave =>
+                        `${leave.leave_code}: ${leave.remaining_balance || leave.total_balance || 0}`
+                    ).join('<br>');
+                    leaveBalanceElement.innerHTML = leaveText;
+                    leaveBalanceElement.style.fontSize = "14px";
+                    leaveBalanceElement.style.lineHeight = "1.4";
+                } else {
+                    leaveBalanceElement.textContent = dashData.activeLeaves || '0';
+                    leaveBalanceElement.style.fontSize = "28px";
+                }
+            }
 
-    const markAttendanceBtn = document.getElementById("markAttendanceBtn");
-    if(markAttendanceBtn) {
-      markAttendanceBtn.addEventListener("click", () => {
-        window.location.href = "attendance.html";
-      });
-    }
+            // SINGLE dashboard API call - Remove the duplicate calls
+            fetch(`http://localhost:3000/api/dashboard?empId=${empId}&role=${role}`)
+                .then(r => {
+                    if (!r.ok) throw new Error('Network response was not ok');
+                    return r.json();
+                })
+                .then(data => {
+                    document.getElementById('totalEmployees').textContent = data.totalEmployees || 0;
+                    document.getElementById('upcomingHolidays').textContent = data.upcomingHolidays || 0;
 
-    const approveBtn = document.querySelector('.quick-actions button:first-child');
-    if (approveBtn) {
-      approveBtn.addEventListener('click', () => {
-        window.location.href = 'leave_applications.html';
-      });
-    }
+                    // Load detailed leave balance
+                    loadEmployeeLeaveBalance(empId, role);
 
-    if(reportBtn) {
-      reportBtn.addEventListener('click', () => {
-        window.location.href = 'reports.html';
-      });
-    }
-  });
+                    document.getElementById('pendingTasks').innerHTML = (data.pendingTasks || []).map(t => `<li>${t}</li>`).join('');
+                    document.getElementById('systemNotifications').innerHTML = (data.systemNotifications || []).map(n => `<li>${n}</li>`).join('');
+                })
+                .catch(err => {
+                    console.error('Dashboard API error:', err);
+                    document.getElementById('totalEmployees').textContent = '0';
+                    document.getElementById('activeLeaves').textContent = '0';
+                    document.getElementById('upcomingHolidays').textContent = '0';
+                    document.getElementById('pendingTasks').innerHTML = '<li>Error loading data</li>';
+                    document.getElementById('systemNotifications').innerHTML = '<li>System maintenance</li>';
+                });
 
-  async function loadEmployees() {
-    try {
-      const res = await fetch("http://localhost:3000/api/employees");
-      const employees = await res.json();
-      const tableBody = document.getElementById("employeeTableBody");
-      tableBody.innerHTML = "";
-      employees.forEach(emp => {
-        tableBody.innerHTML += `<tr>
+            if (addBtn && role === "admin") {
+                addBtn.addEventListener("click", () => {
+                    window.open("add_employee.html", "_blank", "width=900,height=700");
+                });
+            }
+
+            if (viewBtn && role === "admin") {
+                viewBtn.addEventListener("click", loadEmployees);
+            }
+
+            const markAttendanceBtn = document.getElementById("markAttendanceBtn");
+            if (markAttendanceBtn) {
+                markAttendanceBtn.addEventListener("click", () => {
+                    window.location.href = "attendance.html";
+                });
+            }
+
+            const approveBtn = document.querySelector('.quick-actions button:first-child');
+            if (approveBtn) {
+                approveBtn.addEventListener('click', () => {
+                    window.location.href = 'leave_applications.html';
+                });
+            }
+
+            if (reportBtn) {
+                reportBtn.addEventListener('click', () => {
+                    window.location.href = 'reports.html';
+                });
+            }
+
+            async function loadEmployees() {
+                try {
+                    const res = await fetch("http://localhost:3000/api/employees");
+                    const employees = await res.json();
+                    const tableBody = document.getElementById("employeeTableBody");
+                    tableBody.innerHTML = "";
+                    employees.forEach(emp => {
+                        tableBody.innerHTML += `<tr>
           <td>${emp.EmpId}</td>
           <td>${emp.Name}</td>
           <td>${emp.Dept}</td>
           <td>${emp.Design}</td>
           <td>${emp.Active ? "Yes" : "No"}</td>
         </tr>`;
-      });
-      const empListContainer = document.getElementById("employeeListContainer");
-      if(empListContainer) empListContainer.style.display = "block";
-      const addBtn = document.getElementById("addEmployeeBtn");
-      if(addBtn) addBtn.style.display = "none";
-      document.getElementById("totalEmployees").textContent = employees.length;
-    } catch(err) {
-      console.error(err);
-      alert("Failed to load employees. Check console for details.");
-    }
-  }
-  </script>
+                    });
+                    const empListContainer = document.getElementById("employeeListContainer");
+                    if (empListContainer) empListContainer.style.display = "block";
+                    const addBtn = document.getElementById("addEmployeeBtn");
+                    if (addBtn) addBtn.style.display = "none";
+                    document.getElementById("totalEmployees").textContent = employees.length;
+                } catch (err) {
+                    console.error(err);
+                    alert("Failed to load employees. Check console for details.");
+                }
+            }
+        });
+                // Notification functionality
+        const notificationBell = document.getElementById('notificationBell');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+        const notificationBadge = document.getElementById('notificationBadge');
+        const notificationList = document.getElementById('notificationList');
+        const markAllReadBtn = document.getElementById('markAllRead');
+
+        // Toggle notification dropdown
+        if (notificationBell) {
+            notificationBell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('show');
+                loadNotifications();
+            });
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!notificationBell.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                notificationDropdown.classList.remove('show');
+            }
+        });
+
+        // Load notifications from API
+        async function loadNotifications() {
+            try {
+                const empId = (localStorage.getItem("EmpId") || "").trim();
+                if (!empId) return;
+
+                const response = await fetch(`http://localhost:3000/api/notifications?userId=${empId}`);
+                const notifications = await response.json();
+
+                updateNotificationUI(notifications);
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                notificationList.innerHTML = '<div class="notification-empty">Error loading notifications</div>';
+            }
+        }
+
+        // Update notification UI
+        function updateNotificationUI(notifications) {
+            if (!notifications || notifications.length === 0) {
+                notificationList.innerHTML = '<div class="notification-empty">No notifications</div>';
+                notificationBadge.style.display = 'none';
+                return;
+            }
+
+            // Count unread notifications
+            const unreadCount = notifications.filter(n => !n.is_read).length;
+            if (unreadCount > 0) {
+                notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                notificationBadge.style.display = 'block';
+            } else {
+                notificationBadge.style.display = 'none';
+            }
+
+            // Render notifications
+            notificationList.innerHTML = notifications.map(notification => `
+                <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
+                     data-id="${notification.id}">
+                    <div class="notification-title">${notification.title}</div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-meta">
+                        <span>${formatTime(notification.created_at)}</span>
+                        <span class="notification-type type-${notification.type || 'info'}">
+                            ${notification.type || 'info'}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add click handlers for notifications
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.addEventListener('click', async () => {
+                    const notificationId = item.dataset.id;
+                    await markNotificationAsRead(notificationId);
+                    item.classList.remove('unread');
+                    loadUnreadCount(); // Refresh badge count
+                });
+            });
+        }
+
+        // Mark notification as read
+        async function markNotificationAsRead(notificationId) {
+            try {
+                await fetch(`http://localhost:3000/api/notifications/${notificationId}/read`, {
+                    method: 'PUT'
+                });
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        // Mark all as read
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const empId = (localStorage.getItem("EmpId") || "").trim();
+                
+                try {
+                    await fetch('http://localhost:3000/api/notifications/mark-all-read', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ userId: empId })
+                    });
+                    
+                    loadNotifications(); // Refresh the list
+                    loadUnreadCount(); // Refresh badge
+                } catch (error) {
+                    console.error('Error marking all as read:', error);
+                }
+            });
+        }
+
+        // Load unread count for badge
+        async function loadUnreadCount() {
+            try {
+                const empId = (localStorage.getItem("EmpId") || "").trim();
+                if (!empId) return;
+
+                const response = await fetch(`http://localhost:3000/api/notifications/unread-count?userId=${empId}`);
+                const data = await response.json();
+                
+                if (data.count > 0) {
+                    notificationBadge.textContent = data.count > 99 ? '99+' : data.count;
+                    notificationBadge.style.display = 'block';
+                } else {
+                    notificationBadge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading unread count:', error);
+            }
+        }
+
+        // Format time helper
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            
+            return date.toLocaleDateString();
+        }
+
+        // Load unread count on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUnreadCount();
+            
+            // Refresh notifications every 30 seconds
+            setInterval(loadUnreadCount, 30000);
+        });
+    </script>
 </body>
+</html>
+    </script>
+</body>
+
 </html>
