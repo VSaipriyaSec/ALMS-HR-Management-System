@@ -236,10 +236,6 @@ Final Year – B.E. Computer Science Engineering
 GitHub:
 https://github.com/VSaipriyaSec
 
-LinkedIn:
-(Add your LinkedIn URL)
-
----
 
 ## 📜 License
 
